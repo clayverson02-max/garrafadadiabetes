@@ -64,8 +64,8 @@ export const sendMetaEvent = createServerFn({ method: "POST" })
           body: JSON.stringify(payload),
         },
       );
-      const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-      return { ok: res.ok, status: res.status, response: json };
+      await res.text().catch(() => "");
+      return { ok: res.ok, status: res.status };
     } catch (err) {
       return { ok: false, error: String(err) };
     }
