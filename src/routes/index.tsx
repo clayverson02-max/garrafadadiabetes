@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import heroImg from "@/assets/hero-idosa.jpg";
-import garrafadaImg from "@/assets/garrafada.jpg";
 import receitaAsset from "@/assets/receita-natural.png.asset.json";
 import { sendMetaEvent } from "@/lib/meta-capi.functions";
 
