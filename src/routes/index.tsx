@@ -749,7 +749,7 @@ function Index() {
         </p>
       </footer>
 
-      <FloatingCTA />
+      {stage === "quiz2" && <FloatingCTA />}
     </main>
   );
 }
