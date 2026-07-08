@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import heroImg from "@/assets/hero-idosa.jpg";
 import garrafadaImg from "@/assets/garrafada.jpg";
+import receitaAsset from "@/assets/receita-natural.png.asset.json";
 import { sendMetaEvent } from "@/lib/meta-capi.functions";
 
 export const Route = createFileRoute("/")({
@@ -384,11 +385,11 @@ type Stage =
   | "checkout";
 
 const VIDEO_ID = "0w0Ispl9q3Q";
+const VIDEO_ID_2 = "kDT8CZakXVc";
 
 function Index() {
   const [stage, setStage] = useState<Stage>("hero");
   const [answers2, setAnswers2] = useState<string[]>([]);
-  const stageRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     trackEvent("ViewContent", {
@@ -399,12 +400,11 @@ function Index() {
     });
   }, []);
 
-  // Auto-scroll to the new stage
+  // Single-view flow: sempre iniciar cada etapa no topo da tela
   useEffect(() => {
-    if (stage === "hero") return;
-    setTimeout(() => {
-      stageRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 60);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
   }, [stage]);
 
   // Loading -> result
@@ -437,6 +437,7 @@ function Index() {
   return (
     <main className="min-h-screen w-full bg-white text-foreground pb-28">
       {/* HERO */}
+      {stage === "hero" && (
       <section className="w-full bg-gradient-to-b from-[oklch(0.98_0.02_150)] to-white px-5 pt-10 pb-14">
         <div className="mx-auto max-w-3xl text-center">
           <span className="inline-block rounded-full bg-[oklch(0.93_0.06_150)] px-4 py-1.5 text-sm md:text-base font-semibold text-[oklch(0.30_0.10_150)]">
@@ -479,33 +480,22 @@ function Index() {
           </p>
         </div>
       </section>
+      )}
 
       {/* QUIZ 1 */}
-      {stage !== "hero" && (
-        <div ref={stage === "quiz1" ? stageRef : undefined}>
-          {stage === "quiz1" && (
-            <Quiz
-              id="quiz_dores"
-              title="Como a diabetes está afetando sua vida?"
-              subtitle="Responda com carinho, é rapidinho."
-              questions={QUIZ_1}
-              onDone={() => setStage("vsl1")}
-            />
-          )}
-        </div>
+      {stage === "quiz1" && (
+        <Quiz
+          id="quiz_dores"
+          title="Como a diabetes está afetando sua vida?"
+          subtitle="Responda com carinho, é rapidinho."
+          questions={QUIZ_1}
+          onDone={() => setStage("vsl1")}
+        />
       )}
 
       {/* VSL 1 */}
-      {(stage === "vsl1" ||
-        stage === "quiz2" ||
-        stage === "loading" ||
-        stage === "result" ||
-        stage === "vsl2" ||
-        stage === "checkout") && (
-        <section
-          ref={stage === "vsl1" ? stageRef : undefined}
-          className="w-full bg-[oklch(0.98_0.02_150)] px-5 py-12"
-        >
+      {stage === "vsl1" && (
+        <section className="w-full bg-[oklch(0.98_0.02_150)] px-5 py-12">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-2xl md:text-4xl font-bold text-foreground">
               Veja o que está acontecendo com quem já está usando a Garrafada
@@ -518,8 +508,7 @@ function Index() {
             <div className="mt-8">
               <VSL videoId={VIDEO_ID} label="vsl_depoimento" />
             </div>
-            {stage === "vsl1" && (
-              <button
+            <button
                 onClick={() => {
                   trackEvent("CTAClick", { cta: "vsl1_continue" });
                   setStage("quiz2");
@@ -528,39 +517,27 @@ function Index() {
               >
                 Continuar para análise do meu perfil →
               </button>
-            )}
           </div>
         </section>
       )}
 
       {/* QUIZ 2 */}
-      {(stage === "quiz2" ||
-        stage === "loading" ||
-        stage === "result" ||
-        stage === "vsl2" ||
-        stage === "checkout") && (
-        <div ref={stage === "quiz2" ? stageRef : undefined}>
-          {stage === "quiz2" && (
-            <Quiz
-              id="quiz_perfil"
-              title="Vamos analisar seu perfil"
-              subtitle="Responda essas perguntas para vermos suas chances reais de melhorar"
-              questions={QUIZ_2}
-              onDone={(a) => {
-                setAnswers2(a);
-                setStage("loading");
-              }}
-            />
-          )}
-        </div>
+      {stage === "quiz2" && (
+        <Quiz
+          id="quiz_perfil"
+          title="Vamos analisar seu perfil"
+          subtitle="Responda essas perguntas para vermos suas chances reais de melhorar"
+          questions={QUIZ_2}
+          onDone={(a) => {
+            setAnswers2(a);
+            setStage("loading");
+          }}
+        />
       )}
 
       {/* LOADING */}
       {stage === "loading" && (
-        <section
-          ref={stageRef}
-          className="w-full bg-white px-5 py-20"
-        >
+        <section className="w-full bg-white px-5 py-20">
           <div className="mx-auto flex max-w-lg flex-col items-center text-center">
             <div className="h-16 w-16 animate-spin rounded-full border-4 border-[oklch(0.93_0.06_150)] border-t-primary" />
             <h2 className="mt-6 text-2xl md:text-3xl font-bold text-foreground">
@@ -575,11 +552,8 @@ function Index() {
       )}
 
       {/* RESULT */}
-      {(stage === "result" || stage === "vsl2" || stage === "checkout") && (
-        <section
-          ref={stage === "result" ? stageRef : undefined}
-          className="w-full bg-white px-5 py-14"
-        >
+      {stage === "result" && (
+        <section className="w-full bg-white px-5 py-14">
           <div className="mx-auto max-w-2xl">
             <div className="rounded-3xl border-2 border-[oklch(0.90_0.03_150)] bg-[oklch(0.99_0.01_150)] p-7 md:p-10 shadow-md text-center">
               <span className="inline-block rounded-full bg-[oklch(0.93_0.06_150)] px-4 py-1.5 text-sm md:text-base font-bold text-[oklch(0.30_0.10_150)]">
@@ -626,17 +600,14 @@ function Index() {
       )}
 
       {/* VSL 2 + Preço */}
-      {(stage === "vsl2" || stage === "checkout") && (
-        <section
-          ref={stage === "vsl2" ? stageRef : undefined}
-          className="w-full bg-[oklch(0.98_0.02_150)] px-5 py-14"
-        >
+      {stage === "vsl2" && (
+        <section className="w-full bg-[oklch(0.98_0.02_150)] px-5 py-14">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-2xl md:text-4xl font-bold text-foreground">
               A criadora da Garrafada explica tudo sobre o produto
             </h2>
             <div className="mt-8">
-              <VSL videoId={VIDEO_ID} label="vsl_criadora" />
+              <VSL videoId={VIDEO_ID_2} label="vsl_criadora" />
             </div>
             <p className="mx-auto mt-8 max-w-xl text-xl md:text-2xl font-semibold text-foreground leading-relaxed">
               Por apenas{" "}
@@ -662,17 +633,17 @@ function Index() {
 
       {/* CHECKOUT */}
       {stage === "checkout" && (
-        <section ref={stageRef} className="w-full bg-white px-5 py-14">
+        <section className="w-full bg-white px-5 py-14">
           <div className="mx-auto max-w-2xl">
             <div className="rounded-3xl border-2 border-[oklch(0.90_0.03_150)] bg-white p-6 md:p-10 shadow-lg">
               <div className="flex flex-col items-center gap-5 text-center">
                 <img
-                  src={garrafadaImg}
-                  alt="Garrafada Natural para Diabetes"
-                  width={1024}
-                  height={1024}
+                  src={receitaAsset.url}
+                  alt="Receita natural para auxílio ao controle da glicemia"
+                  width={1080}
+                  height={1080}
                   loading="lazy"
-                  className="w-52 md:w-64 rounded-2xl object-cover"
+                  className="w-full max-w-md rounded-2xl object-cover shadow-md"
                 />
                 <h2 className="text-2xl md:text-4xl font-extrabold text-foreground">
                   Garrafada Natural para Diabetes
@@ -699,6 +670,8 @@ function Index() {
                       currency: "BRL",
                       value: 14.99,
                       content_name: "Garrafada Natural para Diabetes",
+                      content_ids: ["garrafada-diabetes-14-99"],
+                      num_items: 1,
                       source: "checkout_section",
                     })
                   }
