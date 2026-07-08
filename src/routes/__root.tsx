@@ -80,10 +80,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Garrafada Natural para Diabetes — Recupere o Controle da Sua Saúde" },
       { name: "description", content: "Descubra a Garrafada Natural que está ajudando pessoas com diabetes a ter mais energia, menos preocupação e mais qualidade de vida. Faça o teste gratuito." },
       { name: "author", content: "Garrafada Natural" },
-      { property: "og:title", content: "Garrafada Natural para Diabetes" },
-      { property: "og:description", content: "Faça o teste gratuito e descubra como a Garrafada Natural pode te ajudar a recuperar o controle da sua saúde." },
+      { property: "og:title", content: "Garrafada Natural para Diabetes — Recupere o Controle da Sua Saúde" },
+      { property: "og:description", content: "Descubra a Garrafada Natural que está ajudando pessoas com diabetes a ter mais energia, menos preocupação e mais qualidade de vida. Faça o teste gratuito." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Garrafada Natural para Diabetes — Recupere o Controle da Sua Saúde" },
+      { name: "twitter:description", content: "Descubra a Garrafada Natural que está ajudando pessoas com diabetes a ter mais energia, menos preocupação e mais qualidade de vida. Faça o teste gratuito." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c959f2cf-b803-4d05-ad0e-0deb53500239/id-preview-c301436e--3d3072d7-9ecf-421e-b096-e2e1293daab4.lovable.app-1783552040759.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c959f2cf-b803-4d05-ad0e-0deb53500239/id-preview-c301436e--3d3072d7-9ecf-421e-b096-e2e1293daab4.lovable.app-1783552040759.png" },
     ],
     links: [
       {
@@ -93,7 +97,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
     scripts: [
       {
