@@ -88,9 +88,11 @@ function trackEvent(
 function VSL({
   videoId,
   label,
+  onTime,
 }: {
   videoId: string;
   label: string;
+  onTime?: (seconds: number) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<unknown>(null);
@@ -124,6 +126,7 @@ function VSL({
                 };
                 const dur = p.getDuration?.() ?? 0;
                 const cur = p.getCurrentTime?.() ?? 0;
+                if (onTime) onTime(cur);
                 if (!dur) return;
                 const pct = (cur / dur) * 100;
                 for (const milestone of [25, 50, 75]) {
@@ -215,7 +218,7 @@ const QUIZ_1 = [
 const QUIZ_2 = [
   {
     q: "Qual sua faixa etária?",
-    options: ["45 a 60 anos", "61 a 70 anos", "71 anos ou mais"],
+    options: ["18 a 30 anos", "30 a 45 anos", "45 a 61 anos", "61 anos ou mais"],
   },
   {
     q: "Há quanto tempo você tem diabetes?",
@@ -389,6 +392,12 @@ const VIDEO_ID_2 = "kDT8CZakXVc";
 function Index() {
   const [stage, setStage] = useState<Stage>("hero");
   const [answers2, setAnswers2] = useState<string[]>([]);
+  const [vsl1Seconds, setVsl1Seconds] = useState(0);
+  const [vsl2Seconds, setVsl2Seconds] = useState(0);
+  const VSL1_UNLOCK = 40;
+  const VSL2_UNLOCK = 60;
+  const vsl1Unlocked = vsl1Seconds >= VSL1_UNLOCK;
+  const vsl2Unlocked = vsl2Seconds >= VSL2_UNLOCK;
 
   useEffect(() => {
     trackEvent("ViewContent", {
@@ -404,6 +413,12 @@ function Index() {
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "auto" });
     }
+  }, [stage]);
+
+  // Reset video unlock counters when leaving a VSL stage
+  useEffect(() => {
+    if (stage !== "vsl1") setVsl1Seconds(0);
+    if (stage !== "vsl2") setVsl2Seconds(0);
   }, [stage]);
 
   // Loading -> result
@@ -505,17 +520,32 @@ function Index() {
               tranquilidade. Assista ao depoimento:
             </p>
             <div className="mt-8">
-              <VSL videoId={VIDEO_ID} label="vsl_depoimento" />
+              <VSL
+                videoId={VIDEO_ID}
+                label="vsl_depoimento"
+                onTime={(s) => setVsl1Seconds((prev) => (s > prev ? s : prev))}
+              />
             </div>
-            <button
-                onClick={() => {
-                  trackEvent("CTAClick", { cta: "vsl1_continue" });
-                  setStage("quiz2");
-                }}
-                className="mt-8 w-full max-w-xl rounded-2xl bg-primary px-6 py-5 text-lg md:text-xl font-extrabold uppercase text-primary-foreground shadow-lg transition hover:bg-[oklch(0.44_0.14_150)] active:scale-[0.98]"
-              >
-                Continuar para análise do meu perfil →
-              </button>
+            {vsl1Unlocked ? (
+              <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <p className="mb-3 text-base md:text-lg font-semibold text-[oklch(0.30_0.10_150)]">
+                  ✅ Próximo passo liberado — continue seu diagnóstico agora
+                </p>
+                <button
+                  onClick={() => {
+                    trackEvent("CTAClick", { cta: "vsl1_continue", watched_seconds: Math.round(vsl1Seconds) });
+                    setStage("quiz2");
+                  }}
+                  className="w-full max-w-xl rounded-2xl bg-primary px-6 py-5 text-lg md:text-xl font-extrabold uppercase text-primary-foreground shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.44_0.14_150)] active:scale-[0.98]"
+                >
+                  Continuar para análise do meu perfil →
+                </button>
+              </div>
+            ) : (
+              <p className="mt-8 text-base md:text-lg text-muted-foreground">
+                🎥 Assista o vídeo até o final para desbloquear o próximo passo.
+              </p>
+            )}
           </div>
         </section>
       )}
@@ -606,26 +636,80 @@ function Index() {
               A criadora da Garrafada explica tudo sobre o produto
             </h2>
             <div className="mt-8">
-              <VSL videoId={VIDEO_ID_2} label="vsl_criadora" />
+              <VSL
+                videoId={VIDEO_ID_2}
+                label="vsl_criadora"
+                onTime={(s) => setVsl2Seconds((prev) => (s > prev ? s : prev))}
+              />
             </div>
-            <p className="mx-auto mt-8 max-w-xl text-xl md:text-2xl font-semibold text-foreground leading-relaxed">
-              Por apenas{" "}
-              <span className="text-[oklch(0.58_0.22_27)] font-extrabold">
-                R$ 14,99
-              </span>{" "}
-              você leva a fórmula natural poderosa que já está mudando a vida de
-              muitas pessoas.
-            </p>
 
-            <button
-              onClick={() => {
-                trackEvent("CTAClick", { cta: "vsl2_to_checkout" });
-                setStage("checkout");
-              }}
-              className="mt-8 w-full rounded-2xl bg-[oklch(0.58_0.22_27)] px-6 py-6 text-lg md:text-2xl font-extrabold uppercase text-white shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.52_0.22_27)] active:scale-[0.98]"
-            >
-              Ver oferta e garantir a minha →
-            </button>
+            {/* Persuasive copy — always visible, deepens desire while user watches */}
+            <div className="mx-auto mt-10 max-w-xl space-y-5 text-left">
+              <div className="rounded-2xl border-2 border-[oklch(0.90_0.03_150)] bg-white p-6 shadow-sm">
+                <h3 className="text-xl md:text-2xl font-extrabold text-foreground">
+                  🌿 Por que essa receita funciona?
+                </h3>
+                <p className="mt-3 text-base md:text-lg leading-relaxed text-foreground">
+                  A fórmula age diretamente no{" "}
+                  <strong>pâncreas — o órgão responsável por produzir insulina</strong>.
+                  Quando ele volta a funcionar bem, o corpo passa a controlar a
+                  glicose de forma natural, você sente{" "}
+                  <strong>mais energia</strong>,{" "}
+                  <strong>menos cansaço</strong> e a{" "}
+                  <strong>sede constante desaparece</strong>.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border-2 border-[oklch(0.88_0.10_27)] bg-[oklch(0.98_0.03_27)] p-6 shadow-sm">
+                <h3 className="text-xl md:text-2xl font-extrabold text-[oklch(0.45_0.20_27)]">
+                  ⚠️ Não deixe chegar ao pior
+                </h3>
+                <p className="mt-3 text-base md:text-lg leading-relaxed text-foreground">
+                  Durante anos trabalhando dentro de hospitais e postos de saúde,
+                  a criadora viu de perto o que a diabetes descontrolada faz:{" "}
+                  <strong>pessoas perdendo a visão</strong>,{" "}
+                  <strong>amputando pés e pernas</strong>, familiares chorando
+                  na porta do centro cirúrgico. Isso pode ser evitado — e começa
+                  cuidando do pâncreas <em>hoje</em>.
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-[oklch(0.30_0.10_150)] p-6 text-center shadow-md">
+                <p className="text-base md:text-lg font-semibold text-white/90">
+                  Tudo isso por menos que uma pizza:
+                </p>
+                <div className="mt-2 flex items-baseline justify-center gap-3">
+                  <span className="text-xl text-white/60 line-through">R$ 49,90</span>
+                  <span className="text-4xl md:text-5xl font-extrabold text-white">
+                    R$ 14,99
+                  </span>
+                </div>
+                <p className="mt-2 text-sm md:text-base text-white/80">
+                  Pagamento único • Garantia de 7 dias
+                </p>
+              </div>
+            </div>
+
+            {vsl2Unlocked ? (
+              <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <p className="mb-3 text-base md:text-lg font-semibold text-[oklch(0.30_0.10_150)]">
+                  ✅ Sua oferta liberada — garanta enquanto está por R$ 14,99
+                </p>
+                <button
+                  onClick={() => {
+                    trackEvent("CTAClick", { cta: "vsl2_to_checkout", watched_seconds: Math.round(vsl2Seconds) });
+                    setStage("checkout");
+                  }}
+                  className="w-full rounded-2xl bg-[oklch(0.58_0.22_27)] px-6 py-6 text-lg md:text-2xl font-extrabold uppercase text-white shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.52_0.22_27)] active:scale-[0.98]"
+                >
+                  Quero garantir a minha agora →
+                </button>
+              </div>
+            ) : (
+              <p className="mt-8 text-base md:text-lg text-muted-foreground">
+                🎥 Continue assistindo — sua oferta será liberada em instantes.
+              </p>
+            )}
           </div>
         </section>
       )}
