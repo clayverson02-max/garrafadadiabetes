@@ -218,7 +218,7 @@ const QUIZ_1 = [
 const QUIZ_2 = [
   {
     q: "Qual sua faixa etária?",
-    options: ["45 a 60 anos", "61 a 70 anos", "71 anos ou mais"],
+    options: ["18 a 30 anos", "30 a 45 anos", "45 a 61 anos", "61 anos ou mais"],
   },
   {
     q: "Há quanto tempo você tem diabetes?",
