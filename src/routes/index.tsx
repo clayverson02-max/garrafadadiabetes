@@ -351,27 +351,6 @@ function Quiz({
   );
 }
 
-function FloatingCTA() {
-  return (
-    <a
-      href={CHECKOUT_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={() =>
-        trackEvent("InitiateCheckout", {
-          currency: "BRL",
-          value: 14.99,
-          content_name: "Garrafada Natural para Diabetes",
-          source: "floating_cta",
-        })
-      }
-      className="fixed inset-x-3 bottom-3 z-50 mx-auto block max-w-xl rounded-2xl bg-[oklch(0.58_0.22_27)] px-5 py-4 text-center text-lg md:text-xl font-extrabold uppercase tracking-wide text-white shadow-2xl ring-2 ring-white transition hover:bg-[oklch(0.52_0.22_27)] active:scale-[0.99]"
-    >
-      🛒 Comprar agora por apenas R$ 14,99
-    </a>
-  );
-}
-
 /* -------------------------------------------------------------------------- */
 /*  Page                                                                      */
 /* -------------------------------------------------------------------------- */
