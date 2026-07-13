@@ -351,27 +351,6 @@ function Quiz({
   );
 }
 
-function FloatingCTA() {
-  return (
-    <a
-      href={CHECKOUT_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={() =>
-        trackEvent("InitiateCheckout", {
-          currency: "BRL",
-          value: 14.99,
-          content_name: "Garrafada Natural para Diabetes",
-          source: "floating_cta",
-        })
-      }
-      className="fixed inset-x-3 bottom-3 z-50 mx-auto block max-w-xl rounded-2xl bg-[oklch(0.58_0.22_27)] px-5 py-4 text-center text-lg md:text-xl font-extrabold uppercase tracking-wide text-white shadow-2xl ring-2 ring-white transition hover:bg-[oklch(0.52_0.22_27)] active:scale-[0.99]"
-    >
-      🛒 Comprar agora por apenas R$ 14,99
-    </a>
-  );
-}
-
 /* -------------------------------------------------------------------------- */
 /*  Page                                                                      */
 /* -------------------------------------------------------------------------- */
@@ -398,6 +377,21 @@ function Index() {
   const VSL2_UNLOCK = 60;
   const vsl1Unlocked = vsl1Seconds >= VSL1_UNLOCK;
   const vsl2Unlocked = vsl2Seconds >= VSL2_UNLOCK;
+  const vsl1BtnRef = useRef<HTMLDivElement | null>(null);
+  const vsl2BtnRef = useRef<HTMLDivElement | null>(null);
+
+  // When a VSL unlock happens, gently scroll the CTA into view so the lead
+  // never has to hunt for the next step.
+  useEffect(() => {
+    if (vsl1Unlocked && vsl1BtnRef.current) {
+      vsl1BtnRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [vsl1Unlocked]);
+  useEffect(() => {
+    if (vsl2Unlocked && vsl2BtnRef.current) {
+      vsl2BtnRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [vsl2Unlocked]);
 
   useEffect(() => {
     trackEvent("ViewContent", {
@@ -449,34 +443,34 @@ function Index() {
   }, [answers2]);
 
   return (
-    <main className="min-h-screen w-full bg-white text-foreground pb-28">
+    <main className="min-h-[100svh] w-full bg-white text-foreground">
       {/* HERO */}
       {stage === "hero" && (
-      <section className="w-full bg-gradient-to-b from-[oklch(0.98_0.02_150)] to-white px-5 pt-10 pb-14">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-block rounded-full bg-[oklch(0.93_0.06_150)] px-4 py-1.5 text-sm md:text-base font-semibold text-[oklch(0.30_0.10_150)]">
+      <section className="min-h-[100svh] w-full bg-gradient-to-b from-[oklch(0.98_0.02_150)] to-white px-5 py-6 flex items-center">
+        <div className="mx-auto w-full max-w-3xl text-center">
+          <span className="inline-block rounded-full bg-[oklch(0.93_0.06_150)] px-3 py-1 text-xs md:text-sm font-semibold text-[oklch(0.30_0.10_150)]">
             🌿 100% Natural • Feito no Brasil
           </span>
-          <h1 className="mt-5 text-3xl md:text-5xl font-extrabold leading-tight text-foreground">
+          <h1 className="mt-3 text-2xl md:text-4xl font-extrabold leading-tight text-foreground">
             Você está cansado(a) de viver{" "}
             <span className="text-[oklch(0.58_0.22_27)]">
               refém da diabetes?
             </span>
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg md:text-2xl text-muted-foreground leading-relaxed">
+          <p className="mx-auto mt-3 max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
             Faça o teste gratuito agora e descubra como a{" "}
             <strong className="text-foreground">Garrafada Natural</strong> pode
             te ajudar a recuperar o controle da sua saúde e ter mais qualidade
             de vida.
           </p>
 
-          <div className="mt-8 flex justify-center">
+          <div className="mt-4 flex justify-center">
             <img
               src={heroImg}
               alt="Senhora sorrindo, feliz e saudável, com um copo de chá natural"
               width={1024}
               height={1024}
-              className="w-full max-w-md rounded-3xl shadow-xl object-cover"
+              className="w-full max-w-[220px] md:max-w-xs rounded-3xl shadow-xl object-cover"
             />
           </div>
 
@@ -485,11 +479,11 @@ function Index() {
               trackEvent("CTAClick", { cta: "hero_start_quiz" });
               setStage("quiz1");
             }}
-            className="mt-8 w-full max-w-xl rounded-2xl bg-[oklch(0.58_0.22_27)] px-6 py-6 text-xl md:text-2xl font-extrabold uppercase text-white shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.52_0.22_27)] active:scale-[0.98]"
+            className="mt-5 w-full max-w-xl rounded-2xl bg-[oklch(0.58_0.22_27)] px-6 py-4 md:py-5 text-lg md:text-xl font-extrabold uppercase text-white shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.52_0.22_27)] active:scale-[0.98]"
           >
             ✅ Fazer o teste grátis agora
           </button>
-          <p className="mt-3 text-sm md:text-base text-muted-foreground">
+          <p className="mt-2 text-xs md:text-sm text-muted-foreground">
             Leva menos de 1 minuto • Totalmente gratuito
           </p>
         </div>
@@ -509,17 +503,16 @@ function Index() {
 
       {/* VSL 1 */}
       {stage === "vsl1" && (
-        <section className="w-full bg-[oklch(0.98_0.02_150)] px-5 py-12">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl md:text-4xl font-bold text-foreground">
+        <section className="min-h-[100svh] w-full bg-[oklch(0.98_0.02_150)] px-5 py-6 flex items-center">
+          <div className="mx-auto w-full max-w-2xl text-center">
+            <h2 className="text-xl md:text-3xl font-bold text-foreground">
               Veja o que está acontecendo com quem já está usando a Garrafada
               Natural...
             </h2>
-            <p className="mt-4 text-lg md:text-xl text-muted-foreground">
-              Milhares de pessoas estão reconquistando a saúde e a
-              tranquilidade. Assista ao depoimento:
+            <p className="mt-2 text-sm md:text-base text-muted-foreground">
+              Assista até o final para desbloquear o próximo passo.
             </p>
-            <div className="mt-8">
+            <div className="mt-4">
               <VSL
                 videoId={VIDEO_ID}
                 label="vsl_depoimento"
@@ -527,23 +520,23 @@ function Index() {
               />
             </div>
             {vsl1Unlocked ? (
-              <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <p className="mb-3 text-base md:text-lg font-semibold text-[oklch(0.30_0.10_150)]">
-                  ✅ Próximo passo liberado — continue seu diagnóstico agora
-                </p>
+              <div ref={vsl1BtnRef} className="mt-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="mb-3 inline-block rounded-full bg-[oklch(0.30_0.10_150)] px-4 py-1.5 text-sm md:text-base font-bold text-white shadow-md animate-pulse">
+                  ✅ Próximo passo liberado!
+                </div>
                 <button
                   onClick={() => {
                     trackEvent("CTAClick", { cta: "vsl1_continue", watched_seconds: Math.round(vsl1Seconds) });
                     setStage("quiz2");
                   }}
-                  className="w-full max-w-xl rounded-2xl bg-primary px-6 py-5 text-lg md:text-xl font-extrabold uppercase text-primary-foreground shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.44_0.14_150)] active:scale-[0.98]"
+                  className="w-full max-w-xl rounded-2xl bg-primary px-6 py-4 text-base md:text-lg font-extrabold uppercase text-primary-foreground shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.44_0.14_150)] active:scale-[0.98]"
                 >
                   Continuar para análise do meu perfil →
                 </button>
               </div>
             ) : (
-              <p className="mt-8 text-base md:text-lg text-muted-foreground">
-                🎥 Assista o vídeo até o final para desbloquear o próximo passo.
+              <p className="mt-4 text-sm md:text-base text-muted-foreground">
+                🎥 Assistindo... o próximo passo aparecerá aqui em instantes.
               </p>
             )}
           </div>
@@ -630,12 +623,12 @@ function Index() {
 
       {/* VSL 2 + Preço */}
       {stage === "vsl2" && (
-        <section className="w-full bg-[oklch(0.98_0.02_150)] px-5 py-14">
+        <section className="w-full bg-[oklch(0.98_0.02_150)] px-5 py-8">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl md:text-4xl font-bold text-foreground">
+            <h2 className="text-xl md:text-3xl font-bold text-foreground">
               A criadora da Garrafada explica tudo sobre o produto
             </h2>
-            <div className="mt-8">
+            <div className="mt-4">
               <VSL
                 videoId={VIDEO_ID_2}
                 label="vsl_criadora"
@@ -691,10 +684,10 @@ function Index() {
             </div>
 
             {vsl2Unlocked ? (
-              <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <p className="mb-3 text-base md:text-lg font-semibold text-[oklch(0.30_0.10_150)]">
-                  ✅ Sua oferta liberada — garanta enquanto está por R$ 14,99
-                </p>
+              <div ref={vsl2BtnRef} className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="mb-3 inline-block rounded-full bg-[oklch(0.58_0.22_27)] px-4 py-1.5 text-sm md:text-base font-bold text-white shadow-md animate-pulse">
+                  ✅ Sua oferta foi liberada — clique abaixo
+                </div>
                 <button
                   onClick={() => {
                     trackEvent("CTAClick", { cta: "vsl2_to_checkout", watched_seconds: Math.round(vsl2Seconds) });
@@ -706,7 +699,7 @@ function Index() {
                 </button>
               </div>
             ) : (
-              <p className="mt-8 text-base md:text-lg text-muted-foreground">
+              <p className="mt-6 text-base md:text-lg text-muted-foreground">
                 🎥 Continue assistindo — sua oferta será liberada em instantes.
               </p>
             )}
@@ -804,8 +797,6 @@ function Index() {
           substitui o acompanhamento médico.
         </p>
       </footer>
-
-      {stage === "quiz2" && <FloatingCTA />}
     </main>
   );
 }
