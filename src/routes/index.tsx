@@ -88,9 +88,11 @@ function trackEvent(
 function VSL({
   videoId,
   label,
+  onTime,
 }: {
   videoId: string;
   label: string;
+  onTime?: (seconds: number) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<unknown>(null);
@@ -124,6 +126,7 @@ function VSL({
                 };
                 const dur = p.getDuration?.() ?? 0;
                 const cur = p.getCurrentTime?.() ?? 0;
+                if (onTime) onTime(cur);
                 if (!dur) return;
                 const pct = (cur / dur) * 100;
                 for (const milestone of [25, 50, 75]) {
