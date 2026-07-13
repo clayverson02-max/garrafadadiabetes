@@ -392,6 +392,12 @@ const VIDEO_ID_2 = "kDT8CZakXVc";
 function Index() {
   const [stage, setStage] = useState<Stage>("hero");
   const [answers2, setAnswers2] = useState<string[]>([]);
+  const [vsl1Seconds, setVsl1Seconds] = useState(0);
+  const [vsl2Seconds, setVsl2Seconds] = useState(0);
+  const VSL1_UNLOCK = 40;
+  const VSL2_UNLOCK = 60;
+  const vsl1Unlocked = vsl1Seconds >= VSL1_UNLOCK;
+  const vsl2Unlocked = vsl2Seconds >= VSL2_UNLOCK;
 
   useEffect(() => {
     trackEvent("ViewContent", {
@@ -407,6 +413,12 @@ function Index() {
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "auto" });
     }
+  }, [stage]);
+
+  // Reset video unlock counters when leaving a VSL stage
+  useEffect(() => {
+    if (stage !== "vsl1") setVsl1Seconds(0);
+    if (stage !== "vsl2") setVsl2Seconds(0);
   }, [stage]);
 
   // Loading -> result
