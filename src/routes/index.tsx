@@ -520,17 +520,32 @@ function Index() {
               tranquilidade. Assista ao depoimento:
             </p>
             <div className="mt-8">
-              <VSL videoId={VIDEO_ID} label="vsl_depoimento" />
+              <VSL
+                videoId={VIDEO_ID}
+                label="vsl_depoimento"
+                onTime={(s) => setVsl1Seconds((prev) => (s > prev ? s : prev))}
+              />
             </div>
-            <button
-                onClick={() => {
-                  trackEvent("CTAClick", { cta: "vsl1_continue" });
-                  setStage("quiz2");
-                }}
-                className="mt-8 w-full max-w-xl rounded-2xl bg-primary px-6 py-5 text-lg md:text-xl font-extrabold uppercase text-primary-foreground shadow-lg transition hover:bg-[oklch(0.44_0.14_150)] active:scale-[0.98]"
-              >
-                Continuar para análise do meu perfil →
-              </button>
+            {vsl1Unlocked ? (
+              <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <p className="mb-3 text-base md:text-lg font-semibold text-[oklch(0.30_0.10_150)]">
+                  ✅ Próximo passo liberado — continue seu diagnóstico agora
+                </p>
+                <button
+                  onClick={() => {
+                    trackEvent("CTAClick", { cta: "vsl1_continue", watched_seconds: Math.round(vsl1Seconds) });
+                    setStage("quiz2");
+                  }}
+                  className="w-full max-w-xl rounded-2xl bg-primary px-6 py-5 text-lg md:text-xl font-extrabold uppercase text-primary-foreground shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.44_0.14_150)] active:scale-[0.98]"
+                >
+                  Continuar para análise do meu perfil →
+                </button>
+              </div>
+            ) : (
+              <p className="mt-8 text-base md:text-lg text-muted-foreground">
+                🎥 Assista o vídeo até o final para desbloquear o próximo passo.
+              </p>
+            )}
           </div>
         </section>
       )}
