@@ -380,7 +380,13 @@ const VIDEO_ID_2 = "kDT8CZakXVc";
 /*  Feedbacks (prova social — substitui o primeiro vídeo)                     */
 /* -------------------------------------------------------------------------- */
 
-const FEEDBACKS = [
+const FEEDBACKS: {
+  img?: string;
+  name: string;
+  location: string;
+  stars: number;
+  text: string;
+}[] = [
   {
     img: feedbackMulherAsset.url,
     name: "Ana Paula, 42 anos",
@@ -405,7 +411,7 @@ const FEEDBACKS = [
     text:
       "Minha filha comprou pra mim e eu não acreditava. Tomo todos os dias, parei de acordar de madrugada pra ir no banheiro e o médico ficou impressionado com o exame. Recomendo a todos!",
   },
-] as const;
+];
 
 function Feedbacks({ onContinue }: { onContinue: () => void }) {
   useEffect(() => {
