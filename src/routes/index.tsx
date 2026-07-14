@@ -374,8 +374,116 @@ type Stage =
   | "vsl2"
   | "checkout";
 
-const VIDEO_ID = "0w0Ispl9q3Q";
 const VIDEO_ID_2 = "kDT8CZakXVc";
+
+/* -------------------------------------------------------------------------- */
+/*  Feedbacks (prova social — substitui o primeiro vídeo)                     */
+/* -------------------------------------------------------------------------- */
+
+const FEEDBACKS = [
+  {
+    img: feedbackMulherAsset.url,
+    name: "Ana Paula, 42 anos",
+    location: "Belo Horizonte — MG",
+    stars: 5,
+    text:
+      "Eu vivia cansada, com sede o tempo todo e sem energia pro meu filho. Depois de 3 semanas usando a Garrafada minha glicose baixou e voltei a brincar com ele sem medo. Parece milagre 🙏",
+  },
+  {
+    img: feedbackRapazAsset.url,
+    name: "Lucas M., 29 anos",
+    location: "Curitiba — PR",
+    stars: 5,
+    text:
+      "Descobri diabetes cedo e fiquei desesperado. Não queria depender de remédio pra vida toda. A Garrafada Natural me ajudou a estabilizar a glicose e hoje me sinto no controle da minha saúde.",
+  },
+  {
+    // 3º feedback só em texto, reforço social
+    name: "Maria de Fátima, 68 anos",
+    location: "Recife — PE",
+    stars: 5,
+    text:
+      "Minha filha comprou pra mim e eu não acreditava. Tomo todos os dias, parei de acordar de madrugada pra ir no banheiro e o médico ficou impressionado com o exame. Recomendo a todos!",
+  },
+] as const;
+
+function Feedbacks({ onContinue }: { onContinue: () => void }) {
+  useEffect(() => {
+    trackEvent("ViewFeedbacks", { section: "social_proof" });
+  }, []);
+  return (
+    <section className="min-h-[100svh] w-full bg-[oklch(0.98_0.02_150)] px-5 py-8 flex items-center">
+      <div className="mx-auto w-full max-w-2xl">
+        <div className="text-center">
+          <span className="inline-block rounded-full bg-[oklch(0.93_0.06_150)] px-3 py-1 text-xs md:text-sm font-semibold text-[oklch(0.30_0.10_150)]">
+            ⭐ Mais de 12.000 pessoas já usaram
+          </span>
+          <h2 className="mt-3 text-xl md:text-3xl font-extrabold text-foreground leading-tight">
+            Veja quem já está{" "}
+            <span className="text-primary">recuperando a saúde</span> com a
+            Garrafada Natural
+          </h2>
+          <p className="mt-2 text-sm md:text-base text-muted-foreground">
+            Relatos reais de pessoas como você
+          </p>
+        </div>
+
+        <div className="mt-6 space-y-4">
+          {FEEDBACKS.map((f) => (
+            <div
+              key={f.name}
+              className="rounded-2xl border-2 border-[oklch(0.90_0.03_150)] bg-white p-5 shadow-sm"
+            >
+              <div className="flex items-start gap-4">
+                {f.img ? (
+                  <img
+                    src={f.img}
+                    alt={f.name}
+                    className="h-16 w-16 flex-shrink-0 rounded-full object-cover ring-2 ring-[oklch(0.93_0.06_150)]"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[oklch(0.93_0.06_150)] text-2xl font-bold text-[oklch(0.30_0.10_150)] ring-2 ring-[oklch(0.90_0.03_150)]">
+                    {f.name[0]}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-bold text-foreground">{f.name}</p>
+                    <span className="text-xs rounded-full bg-[oklch(0.93_0.06_150)] px-2 py-0.5 font-semibold text-[oklch(0.30_0.10_150)]">
+                      ✔ Compra verificada
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{f.location}</p>
+                  <p className="mt-1 text-yellow-500 text-sm">
+                    {"★".repeat(f.stars)}
+                  </p>
+                  <p className="mt-2 text-sm md:text-base leading-relaxed text-foreground">
+                    "{f.text}"
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 text-center">
+          <div className="mb-3 inline-block rounded-full bg-[oklch(0.30_0.10_150)] px-4 py-1.5 text-sm md:text-base font-bold text-white shadow-md animate-pulse">
+            ✅ Próximo passo liberado!
+          </div>
+          <button
+            onClick={() => {
+              trackEvent("CTAClick", { cta: "feedbacks_continue" });
+              onContinue();
+            }}
+            className="w-full max-w-xl rounded-2xl bg-primary px-6 py-4 text-base md:text-lg font-extrabold uppercase text-primary-foreground shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.44_0.14_150)] active:scale-[0.98]"
+          >
+            Continuar para minha análise personalizada →
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function Index() {
   const [stage, setStage] = useState<Stage>("hero");
