@@ -367,7 +367,7 @@ function Quiz({
 type Stage =
   | "hero"
   | "quiz1"
-  | "vsl1"
+  | "feedbacks"
   | "quiz2"
   | "loading"
   | "result"
@@ -380,22 +380,13 @@ const VIDEO_ID_2 = "kDT8CZakXVc";
 function Index() {
   const [stage, setStage] = useState<Stage>("hero");
   const [answers2, setAnswers2] = useState<string[]>([]);
-  const [vsl1Seconds, setVsl1Seconds] = useState(0);
   const [vsl2Seconds, setVsl2Seconds] = useState(0);
-  const VSL1_UNLOCK = 40;
   const VSL2_UNLOCK = 60;
-  const vsl1Unlocked = vsl1Seconds >= VSL1_UNLOCK;
   const vsl2Unlocked = vsl2Seconds >= VSL2_UNLOCK;
-  const vsl1BtnRef = useRef<HTMLDivElement | null>(null);
   const vsl2BtnRef = useRef<HTMLDivElement | null>(null);
 
   // When a VSL unlock happens, gently scroll the CTA into view so the lead
   // never has to hunt for the next step.
-  useEffect(() => {
-    if (vsl1Unlocked && vsl1BtnRef.current) {
-      vsl1BtnRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [vsl1Unlocked]);
   useEffect(() => {
     if (vsl2Unlocked && vsl2BtnRef.current) {
       vsl2BtnRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -418,9 +409,8 @@ function Index() {
     }
   }, [stage]);
 
-  // Reset video unlock counters when leaving a VSL stage
+  // Reset video unlock counter when leaving VSL2
   useEffect(() => {
-    if (stage !== "vsl1") setVsl1Seconds(0);
     if (stage !== "vsl2") setVsl2Seconds(0);
   }, [stage]);
 
@@ -475,11 +465,9 @@ function Index() {
 
           <div className="mt-4 flex justify-center">
             <img
-              src={heroImg}
-              alt="Senhora sorrindo, feliz e saudável, com um copo de chá natural"
-              width={1024}
-              height={1024}
-              className="w-full max-w-[220px] md:max-w-xs rounded-3xl shadow-xl object-cover"
+              src={heroAsset.url}
+              alt="Senhora satisfeita segurando a Garrafada Natural"
+              className="w-full max-w-[240px] md:max-w-xs rounded-3xl shadow-xl object-cover"
             />
           </div>
 
@@ -506,58 +494,19 @@ function Index() {
           title="Como a diabetes está afetando sua vida?"
           subtitle="Responda com carinho, é rapidinho."
           questions={QUIZ_1}
-          onDone={() => setStage("vsl1")}
+          onDone={() => setStage("feedbacks")}
         />
       )}
 
-      {/* VSL 1 */}
-      {stage === "vsl1" && (
-        <section className="min-h-[100svh] w-full bg-[oklch(0.98_0.02_150)] px-5 py-6 flex items-center">
-          <div className="mx-auto w-full max-w-2xl text-center">
-            <h2 className="text-xl md:text-3xl font-bold text-foreground">
-              Veja o que está acontecendo com quem já está usando a Garrafada
-              Natural...
-            </h2>
-            <p className="mt-2 text-sm md:text-base text-muted-foreground">
-              Assista até o final para desbloquear o próximo passo.
-            </p>
-            <div className="mt-4">
-              <VSL
-                videoId={VIDEO_ID}
-                label="vsl_depoimento"
-                onTime={(s) => setVsl1Seconds((prev) => (s > prev ? s : prev))}
-              />
-            </div>
-            {vsl1Unlocked ? (
-              <div ref={vsl1BtnRef} className="mt-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="mb-3 inline-block rounded-full bg-[oklch(0.30_0.10_150)] px-4 py-1.5 text-sm md:text-base font-bold text-white shadow-md animate-pulse">
-                  ✅ Próximo passo liberado!
-                </div>
-                <button
-                  onClick={() => {
-                    trackEvent("CTAClick", { cta: "vsl1_continue", watched_seconds: Math.round(vsl1Seconds) });
-                    setStage("quiz2");
-                  }}
-                  className="w-full max-w-xl rounded-2xl bg-primary px-6 py-4 text-base md:text-lg font-extrabold uppercase text-primary-foreground shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.44_0.14_150)] active:scale-[0.98]"
-                >
-                  Continuar para análise do meu perfil →
-                </button>
-              </div>
-            ) : (
-              <p className="mt-4 text-sm md:text-base text-muted-foreground">
-                🎥 Assistindo... o próximo passo aparecerá aqui em instantes.
-              </p>
-            )}
-          </div>
-        </section>
-      )}
+      {/* FEEDBACKS */}
+      {stage === "feedbacks" && <Feedbacks onContinue={() => setStage("quiz2")} />}
 
       {/* QUIZ 2 */}
       {stage === "quiz2" && (
         <Quiz
           id="quiz_perfil"
-          title="Vamos analisar seu perfil"
-          subtitle="Responda essas perguntas para vermos suas chances reais de melhorar"
+          title="Vamos descobrir como a Garrafada pode te ajudar"
+          subtitle="Responda para liberar seu resultado personalizado"
           questions={QUIZ_2}
           onDone={(a) => {
             setAnswers2(a);
