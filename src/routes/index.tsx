@@ -247,7 +247,7 @@ const QUIZ_2 = [
   },
 ] as const;
 
-const CHECKOUT_URL = "https://pay.kiwify.com.br/J5FFtog";
+const CHECKOUT_URL = "https://checkout.wiven.com.br/checkout/cmrk289w90i5f01pvn2yblhh9?offer=MJT8T3B";
 
 /* -------------------------------------------------------------------------- */
 /*  Section components                                                        */
