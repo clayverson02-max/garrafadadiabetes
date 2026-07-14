@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import heroImg from "@/assets/hero-idosa.jpg";
+import heroAsset from "@/assets/senhora-garrafada.jpeg.asset.json";
+import feedbackRapazAsset from "@/assets/feedback-rapaz.jpg.asset.json";
+import feedbackMulherAsset from "@/assets/feedback-mulher.jpg.asset.json";
 import receitaAsset from "@/assets/receita-natural.png.asset.json";
 import { sendMetaEvent } from "@/lib/meta-capi.functions";
 
@@ -112,6 +114,12 @@ function VSL({
           modestbranding: 1,
           rel: 0,
           playsinline: 1,
+          iv_load_policy: 3,
+          fs: 0,
+          disablekb: 1,
+          cc_load_policy: 0,
+          showinfo: 0,
+          controls: 1,
         },
         events: {
           onStateChange: (e: { data: number; target: unknown }) => {
@@ -174,8 +182,14 @@ function VSL({
   }, [videoId, label]);
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl bg-black shadow-lg" style={{ aspectRatio: "9/16", maxWidth: 380, margin: "0 auto" }}>
+    <div
+      className="relative w-full overflow-hidden rounded-2xl bg-black shadow-lg mx-auto"
+      style={{ aspectRatio: "9/16", maxWidth: 340 }}
+    >
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+      {/* Overlays para esconder logotipo/título do YouTube */}
+      <div className="pointer-events-none absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-black/70 to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 right-0 h-10 w-24 bg-black/80" />
     </div>
   );
 }
@@ -221,29 +235,24 @@ const QUIZ_2 = [
     options: ["18 a 30 anos", "30 a 45 anos", "45 a 61 anos", "61 anos ou mais"],
   },
   {
-    q: "Há quanto tempo você tem diabetes?",
-    options: ["Menos de 1 ano", "1 a 5 anos", "Mais de 5 anos"],
+    q: "Você gostaria de reduzir o cansaço e ter mais energia todos os dias?",
+    options: ["Sim, muito!", "Com certeza", "Seria maravilhoso"],
   },
   {
-    q: "Você toma remédios ou insulina diariamente?",
-    options: ["Sim", "Às vezes", "Não"],
+    q: "Prefere uma solução 100% natural, sem efeitos colaterais?",
+    options: ["Sim, com certeza", "Sim, prefiro natural", "Sim, natural é melhor"],
   },
   {
-    q: "Qual seu maior incômodo atualmente?",
-    options: [
-      "Cansaço",
-      "Medo de complicações",
-      "Glicose descontrolada",
-      "Dificuldade na alimentação",
-    ],
+    q: "Você gostaria de ajudar seu pâncreas a produzir insulina de forma natural?",
+    options: ["Sim, quero muito", "Sim, é o que preciso", "Com certeza"],
   },
   {
-    q: "Você acredita que uma solução natural pode te ajudar?",
-    options: ["Sim, tenho fé", "Quero acreditar", "Ainda tenho dúvidas"],
+    q: "Se pudesse controlar sua glicose sem sofrimento, você começaria hoje?",
+    options: ["Sim, começaria agora", "Sim, quero mudar", "Quero acreditar"],
   },
   {
-    q: "Você está disposto(a) a experimentar por 30 dias?",
-    options: ["Sim, com certeza", "Provavelmente sim"],
+    q: "Você está disposto(a) a experimentar por 30 dias com garantia?",
+    options: ["Sim, com certeza", "Sim, quero testar"],
   },
 ] as const;
 
