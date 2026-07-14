@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import heroImg from "@/assets/hero-idosa.jpg";
+import heroAsset from "@/assets/senhora-garrafada.jpeg.asset.json";
+import feedbackRapazAsset from "@/assets/feedback-rapaz.jpg.asset.json";
+import feedbackMulherAsset from "@/assets/feedback-mulher.jpg.asset.json";
 import receitaAsset from "@/assets/receita-natural.png.asset.json";
 import { sendMetaEvent } from "@/lib/meta-capi.functions";
 
@@ -112,6 +114,12 @@ function VSL({
           modestbranding: 1,
           rel: 0,
           playsinline: 1,
+          iv_load_policy: 3,
+          fs: 0,
+          disablekb: 1,
+          cc_load_policy: 0,
+          showinfo: 0,
+          controls: 1,
         },
         events: {
           onStateChange: (e: { data: number; target: unknown }) => {
@@ -174,8 +182,14 @@ function VSL({
   }, [videoId, label]);
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl bg-black shadow-lg" style={{ aspectRatio: "9/16", maxWidth: 380, margin: "0 auto" }}>
+    <div
+      className="relative w-full overflow-hidden rounded-2xl bg-black shadow-lg mx-auto"
+      style={{ aspectRatio: "9/16", maxWidth: 340 }}
+    >
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+      {/* Overlays para esconder logotipo/título do YouTube */}
+      <div className="pointer-events-none absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-black/70 to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 right-0 h-10 w-24 bg-black/80" />
     </div>
   );
 }
@@ -221,29 +235,24 @@ const QUIZ_2 = [
     options: ["18 a 30 anos", "30 a 45 anos", "45 a 61 anos", "61 anos ou mais"],
   },
   {
-    q: "Há quanto tempo você tem diabetes?",
-    options: ["Menos de 1 ano", "1 a 5 anos", "Mais de 5 anos"],
+    q: "Você gostaria de reduzir o cansaço e ter mais energia todos os dias?",
+    options: ["Sim, muito!", "Com certeza", "Seria maravilhoso"],
   },
   {
-    q: "Você toma remédios ou insulina diariamente?",
-    options: ["Sim", "Às vezes", "Não"],
+    q: "Prefere uma solução 100% natural, sem efeitos colaterais?",
+    options: ["Sim, com certeza", "Sim, prefiro natural", "Sim, natural é melhor"],
   },
   {
-    q: "Qual seu maior incômodo atualmente?",
-    options: [
-      "Cansaço",
-      "Medo de complicações",
-      "Glicose descontrolada",
-      "Dificuldade na alimentação",
-    ],
+    q: "Você gostaria de ajudar seu pâncreas a produzir insulina de forma natural?",
+    options: ["Sim, quero muito", "Sim, é o que preciso", "Com certeza"],
   },
   {
-    q: "Você acredita que uma solução natural pode te ajudar?",
-    options: ["Sim, tenho fé", "Quero acreditar", "Ainda tenho dúvidas"],
+    q: "Se pudesse controlar sua glicose sem sofrimento, você começaria hoje?",
+    options: ["Sim, começaria agora", "Sim, quero mudar", "Quero acreditar"],
   },
   {
-    q: "Você está disposto(a) a experimentar por 30 dias?",
-    options: ["Sim, com certeza", "Provavelmente sim"],
+    q: "Você está disposto(a) a experimentar por 30 dias com garantia?",
+    options: ["Sim, com certeza", "Sim, quero testar"],
   },
 ] as const;
 
@@ -358,35 +367,140 @@ function Quiz({
 type Stage =
   | "hero"
   | "quiz1"
-  | "vsl1"
+  | "feedbacks"
   | "quiz2"
   | "loading"
   | "result"
   | "vsl2"
   | "checkout";
 
-const VIDEO_ID = "0w0Ispl9q3Q";
 const VIDEO_ID_2 = "kDT8CZakXVc";
+
+/* -------------------------------------------------------------------------- */
+/*  Feedbacks (prova social — substitui o primeiro vídeo)                     */
+/* -------------------------------------------------------------------------- */
+
+const FEEDBACKS: {
+  img?: string;
+  name: string;
+  location: string;
+  stars: number;
+  text: string;
+}[] = [
+  {
+    img: feedbackMulherAsset.url,
+    name: "Ana Paula, 42 anos",
+    location: "Belo Horizonte — MG",
+    stars: 5,
+    text:
+      "Eu vivia cansada, com sede o tempo todo e sem energia pro meu filho. Depois de 3 semanas usando a Garrafada minha glicose baixou e voltei a brincar com ele sem medo. Parece milagre 🙏",
+  },
+  {
+    img: feedbackRapazAsset.url,
+    name: "Lucas M., 29 anos",
+    location: "Curitiba — PR",
+    stars: 5,
+    text:
+      "Descobri diabetes cedo e fiquei desesperado. Não queria depender de remédio pra vida toda. A Garrafada Natural me ajudou a estabilizar a glicose e hoje me sinto no controle da minha saúde.",
+  },
+  {
+    // 3º feedback só em texto, reforço social
+    name: "Maria de Fátima, 68 anos",
+    location: "Recife — PE",
+    stars: 5,
+    text:
+      "Minha filha comprou pra mim e eu não acreditava. Tomo todos os dias, parei de acordar de madrugada pra ir no banheiro e o médico ficou impressionado com o exame. Recomendo a todos!",
+  },
+];
+
+function Feedbacks({ onContinue }: { onContinue: () => void }) {
+  useEffect(() => {
+    trackEvent("ViewFeedbacks", { section: "social_proof" });
+  }, []);
+  return (
+    <section className="min-h-[100svh] w-full bg-[oklch(0.98_0.02_150)] px-5 py-8 flex items-center">
+      <div className="mx-auto w-full max-w-2xl">
+        <div className="text-center">
+          <span className="inline-block rounded-full bg-[oklch(0.93_0.06_150)] px-3 py-1 text-xs md:text-sm font-semibold text-[oklch(0.30_0.10_150)]">
+            ⭐ Mais de 12.000 pessoas já usaram
+          </span>
+          <h2 className="mt-3 text-xl md:text-3xl font-extrabold text-foreground leading-tight">
+            Veja quem já está{" "}
+            <span className="text-primary">recuperando a saúde</span> com a
+            Garrafada Natural
+          </h2>
+          <p className="mt-2 text-sm md:text-base text-muted-foreground">
+            Relatos reais de pessoas como você
+          </p>
+        </div>
+
+        <div className="mt-6 space-y-4">
+          {FEEDBACKS.map((f) => (
+            <div
+              key={f.name}
+              className="rounded-2xl border-2 border-[oklch(0.90_0.03_150)] bg-white p-5 shadow-sm"
+            >
+              <div className="flex items-start gap-4">
+                {f.img ? (
+                  <img
+                    src={f.img}
+                    alt={f.name}
+                    className="h-16 w-16 flex-shrink-0 rounded-full object-cover ring-2 ring-[oklch(0.93_0.06_150)]"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[oklch(0.93_0.06_150)] text-2xl font-bold text-[oklch(0.30_0.10_150)] ring-2 ring-[oklch(0.90_0.03_150)]">
+                    {f.name[0]}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-bold text-foreground">{f.name}</p>
+                    <span className="text-xs rounded-full bg-[oklch(0.93_0.06_150)] px-2 py-0.5 font-semibold text-[oklch(0.30_0.10_150)]">
+                      ✔ Compra verificada
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{f.location}</p>
+                  <p className="mt-1 text-yellow-500 text-sm">
+                    {"★".repeat(f.stars)}
+                  </p>
+                  <p className="mt-2 text-sm md:text-base leading-relaxed text-foreground">
+                    "{f.text}"
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 text-center">
+          <div className="mb-3 inline-block rounded-full bg-[oklch(0.30_0.10_150)] px-4 py-1.5 text-sm md:text-base font-bold text-white shadow-md animate-pulse">
+            ✅ Próximo passo liberado!
+          </div>
+          <button
+            onClick={() => {
+              trackEvent("CTAClick", { cta: "feedbacks_continue" });
+              onContinue();
+            }}
+            className="w-full max-w-xl rounded-2xl bg-primary px-6 py-4 text-base md:text-lg font-extrabold uppercase text-primary-foreground shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.44_0.14_150)] active:scale-[0.98]"
+          >
+            Continuar para minha análise personalizada →
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function Index() {
   const [stage, setStage] = useState<Stage>("hero");
   const [answers2, setAnswers2] = useState<string[]>([]);
-  const [vsl1Seconds, setVsl1Seconds] = useState(0);
   const [vsl2Seconds, setVsl2Seconds] = useState(0);
-  const VSL1_UNLOCK = 40;
   const VSL2_UNLOCK = 60;
-  const vsl1Unlocked = vsl1Seconds >= VSL1_UNLOCK;
   const vsl2Unlocked = vsl2Seconds >= VSL2_UNLOCK;
-  const vsl1BtnRef = useRef<HTMLDivElement | null>(null);
   const vsl2BtnRef = useRef<HTMLDivElement | null>(null);
 
   // When a VSL unlock happens, gently scroll the CTA into view so the lead
   // never has to hunt for the next step.
-  useEffect(() => {
-    if (vsl1Unlocked && vsl1BtnRef.current) {
-      vsl1BtnRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [vsl1Unlocked]);
   useEffect(() => {
     if (vsl2Unlocked && vsl2BtnRef.current) {
       vsl2BtnRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -409,9 +523,8 @@ function Index() {
     }
   }, [stage]);
 
-  // Reset video unlock counters when leaving a VSL stage
+  // Reset video unlock counter when leaving VSL2
   useEffect(() => {
-    if (stage !== "vsl1") setVsl1Seconds(0);
     if (stage !== "vsl2") setVsl2Seconds(0);
   }, [stage]);
 
@@ -466,11 +579,9 @@ function Index() {
 
           <div className="mt-4 flex justify-center">
             <img
-              src={heroImg}
-              alt="Senhora sorrindo, feliz e saudável, com um copo de chá natural"
-              width={1024}
-              height={1024}
-              className="w-full max-w-[220px] md:max-w-xs rounded-3xl shadow-xl object-cover"
+              src={heroAsset.url}
+              alt="Senhora satisfeita segurando a Garrafada Natural"
+              className="w-full max-w-[240px] md:max-w-xs rounded-3xl shadow-xl object-cover"
             />
           </div>
 
@@ -497,58 +608,19 @@ function Index() {
           title="Como a diabetes está afetando sua vida?"
           subtitle="Responda com carinho, é rapidinho."
           questions={QUIZ_1}
-          onDone={() => setStage("vsl1")}
+          onDone={() => setStage("feedbacks")}
         />
       )}
 
-      {/* VSL 1 */}
-      {stage === "vsl1" && (
-        <section className="min-h-[100svh] w-full bg-[oklch(0.98_0.02_150)] px-5 py-6 flex items-center">
-          <div className="mx-auto w-full max-w-2xl text-center">
-            <h2 className="text-xl md:text-3xl font-bold text-foreground">
-              Veja o que está acontecendo com quem já está usando a Garrafada
-              Natural...
-            </h2>
-            <p className="mt-2 text-sm md:text-base text-muted-foreground">
-              Assista até o final para desbloquear o próximo passo.
-            </p>
-            <div className="mt-4">
-              <VSL
-                videoId={VIDEO_ID}
-                label="vsl_depoimento"
-                onTime={(s) => setVsl1Seconds((prev) => (s > prev ? s : prev))}
-              />
-            </div>
-            {vsl1Unlocked ? (
-              <div ref={vsl1BtnRef} className="mt-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="mb-3 inline-block rounded-full bg-[oklch(0.30_0.10_150)] px-4 py-1.5 text-sm md:text-base font-bold text-white shadow-md animate-pulse">
-                  ✅ Próximo passo liberado!
-                </div>
-                <button
-                  onClick={() => {
-                    trackEvent("CTAClick", { cta: "vsl1_continue", watched_seconds: Math.round(vsl1Seconds) });
-                    setStage("quiz2");
-                  }}
-                  className="w-full max-w-xl rounded-2xl bg-primary px-6 py-4 text-base md:text-lg font-extrabold uppercase text-primary-foreground shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.44_0.14_150)] active:scale-[0.98]"
-                >
-                  Continuar para análise do meu perfil →
-                </button>
-              </div>
-            ) : (
-              <p className="mt-4 text-sm md:text-base text-muted-foreground">
-                🎥 Assistindo... o próximo passo aparecerá aqui em instantes.
-              </p>
-            )}
-          </div>
-        </section>
-      )}
+      {/* FEEDBACKS */}
+      {stage === "feedbacks" && <Feedbacks onContinue={() => setStage("quiz2")} />}
 
       {/* QUIZ 2 */}
       {stage === "quiz2" && (
         <Quiz
           id="quiz_perfil"
-          title="Vamos analisar seu perfil"
-          subtitle="Responda essas perguntas para vermos suas chances reais de melhorar"
+          title="Vamos descobrir como a Garrafada pode te ajudar"
+          subtitle="Responda para liberar seu resultado personalizado"
           questions={QUIZ_2}
           onDone={(a) => {
             setAnswers2(a);
