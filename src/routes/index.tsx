@@ -10,18 +10,12 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-/* -------------------------------------------------------------------------- */
-/*  Tracking helpers                                                          */
-/* -------------------------------------------------------------------------- */
-
+/* -------------------- Tracking -------------------- */
 declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void;
     YT?: {
-      Player: new (
-        el: HTMLElement | string,
-        opts: Record<string, unknown>,
-      ) => unknown;
+      Player: new (el: HTMLElement | string, opts: Record<string, unknown>) => unknown;
       PlayerState: { PLAYING: number; ENDED: number };
     };
     onYouTubeIframeAPIReady?: () => void;
@@ -29,73 +23,41 @@ declare global {
 }
 
 function uuid() {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return "id-" + Math.random().toString(36).slice(2) + Date.now();
 }
-
 function getCookie(name: string): string | undefined {
   if (typeof document === "undefined") return undefined;
   const m = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
   return m ? decodeURIComponent(m[1]) : undefined;
 }
-
-function trackEvent(
-  event_name: string,
-  custom_data: Record<string, unknown> = {},
-) {
+function trackEvent(event_name: string, custom_data: Record<string, unknown> = {}) {
   const event_id = uuid();
-  // Pixel (browser)
   if (typeof window !== "undefined" && window.fbq) {
     const standard = new Set([
-      "PageView",
-      "ViewContent",
-      "Lead",
-      "InitiateCheckout",
-      "AddToCart",
-      "Purchase",
-      "CompleteRegistration",
-      "Contact",
+      "PageView", "ViewContent", "Lead", "InitiateCheckout",
+      "AddToCart", "Purchase", "CompleteRegistration", "Contact",
     ]);
     const method = standard.has(event_name) ? "track" : "trackCustom";
     window.fbq(method, event_name, custom_data, { eventID: event_id });
   }
-  // Conversions API (server) with same event_id for deduplication
   try {
     void sendMetaEvent({
       data: {
-        event_name,
-        event_id,
-        event_source_url:
-          typeof window !== "undefined" ? window.location.href : undefined,
+        event_name, event_id,
+        event_source_url: typeof window !== "undefined" ? window.location.href : undefined,
         custom_data,
         user_data: {
-          client_user_agent:
-            typeof navigator !== "undefined" ? navigator.userAgent : undefined,
-          fbp: getCookie("_fbp"),
-          fbc: getCookie("_fbc"),
+          client_user_agent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
+          fbp: getCookie("_fbp"), fbc: getCookie("_fbc"),
         },
       },
     });
-  } catch {
-    /* noop */
-  }
+  } catch { /* noop */ }
 }
 
-/* -------------------------------------------------------------------------- */
-/*  YouTube VSL with 25/50/75/100 progress tracking                           */
-/* -------------------------------------------------------------------------- */
-
-function VSL({
-  videoId,
-  label,
-  onTime,
-}: {
-  videoId: string;
-  label: string;
-  onTime?: (seconds: number) => void;
-}) {
+/* -------------------- YouTube feedback video -------------------- */
+function VSL({ videoId, label }: { videoId: string; label: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<unknown>(null);
   const firedRef = useRef<Set<number>>(new Set());
@@ -104,22 +66,13 @@ function VSL({
   useEffect(() => {
     let cancelled = false;
     let interval: ReturnType<typeof setInterval> | undefined;
-
     function init() {
       if (cancelled || !containerRef.current || !window.YT) return;
-      // eslint-disable-next-line new-cap
       playerRef.current = new window.YT.Player(containerRef.current, {
         videoId,
         playerVars: {
-          modestbranding: 1,
-          rel: 0,
-          playsinline: 1,
-          iv_load_policy: 3,
-          fs: 0,
-          disablekb: 1,
-          cc_load_policy: 0,
-          showinfo: 0,
-          controls: 1,
+          modestbranding: 1, rel: 0, playsinline: 1, iv_load_policy: 3,
+          fs: 0, disablekb: 1, cc_load_policy: 0, showinfo: 0, controls: 1,
         },
         events: {
           onStateChange: (e: { data: number; target: unknown }) => {
@@ -128,23 +81,15 @@ function VSL({
               startedRef.current = true;
               trackEvent("VideoStart", { video_id: videoId, label });
               interval = setInterval(() => {
-                const p = e.target as {
-                  getCurrentTime: () => number;
-                  getDuration: () => number;
-                };
+                const p = e.target as { getCurrentTime: () => number; getDuration: () => number };
                 const dur = p.getDuration?.() ?? 0;
                 const cur = p.getCurrentTime?.() ?? 0;
-                if (onTime) onTime(cur);
                 if (!dur) return;
                 const pct = (cur / dur) * 100;
-                for (const milestone of [25, 50, 75]) {
-                  if (pct >= milestone && !firedRef.current.has(milestone)) {
-                    firedRef.current.add(milestone);
-                    trackEvent(`VideoProgress${milestone}`, {
-                      video_id: videoId,
-                      label,
-                      percent: milestone,
-                    });
+                for (const m of [25, 50, 75]) {
+                  if (pct >= m && !firedRef.current.has(m)) {
+                    firedRef.current.add(m);
+                    trackEvent(`VideoProgress${m}`, { video_id: videoId, label, percent: m });
                   }
                 }
               }, 1000);
@@ -152,11 +97,7 @@ function VSL({
             if (state === window.YT!.PlayerState.ENDED) {
               if (!firedRef.current.has(100)) {
                 firedRef.current.add(100);
-                trackEvent("VideoProgress100", {
-                  video_id: videoId,
-                  label,
-                  percent: 100,
-                });
+                trackEvent("VideoProgress100", { video_id: videoId, label, percent: 100 });
               }
               if (interval) clearInterval(interval);
             }
@@ -164,349 +105,214 @@ function VSL({
         },
       });
     }
-
-    if (window.YT && window.YT.Player) {
-      init();
-    } else {
+    if (window.YT && window.YT.Player) init();
+    else {
       const prev = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        prev?.();
-        init();
-      };
+      window.onYouTubeIframeAPIReady = () => { prev?.(); init(); };
     }
-
-    return () => {
-      cancelled = true;
-      if (interval) clearInterval(interval);
-    };
+    return () => { cancelled = true; if (interval) clearInterval(interval); };
   }, [videoId, label]);
 
   return (
-    <div
-      className="relative w-full overflow-hidden rounded-2xl bg-black shadow-lg mx-auto"
-      style={{ aspectRatio: "9/16", maxWidth: 340 }}
-    >
+    <div className="relative w-full overflow-hidden rounded-2xl bg-black shadow-lg mx-auto" style={{ aspectRatio: "9/16", maxWidth: 340 }}>
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
-      {/* Overlays para esconder logotipo/título do YouTube */}
       <div className="pointer-events-none absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-black/70 to-transparent" />
       <div className="pointer-events-none absolute bottom-0 right-0 h-10 w-24 bg-black/80" />
     </div>
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Quiz data                                                                 */
-/* -------------------------------------------------------------------------- */
-
-const QUIZ_1 = [
-  {
-    q: "Você se preocupa muito com sua taxa de glicose?",
-    options: ["Sim, todos os dias", "Às vezes", "Raramente"],
-  },
-  {
-    q: "Você já sentiu medo de ter um pico de glicose?",
-    options: ["Sim, muito medo", "Um pouco", "Não"],
-  },
-  {
-    q: "Sente cansaço frequente ou falta de energia?",
-    options: ["Sim, quase sempre", "De vez em quando", "Raramente"],
-  },
-  {
-    q: "Sente muita sede ou vontade de urinar durante o dia?",
-    options: ["Sim, com frequência", "Às vezes", "Não"],
-  },
-  {
-    q: "Você se sente frustrado(a) com a diabetes?",
-    options: ["Sim, muito", "Um pouco", "Não"],
-  },
-  {
-    q: "Tem medo de complicações (visão, rins, coração)?",
-    options: ["Sim, muito medo", "Um pouco", "Não penso nisso"],
-  },
-  {
-    q: "Você gostaria de viver com mais tranquilidade e liberdade?",
-    options: ["Sim, com certeza!", "Sim, seria bom", "Talvez"],
-  },
-] as const;
-
-const QUIZ_2 = [
-  {
-    q: "Qual sua faixa etária?",
-    options: ["18 a 30 anos", "30 a 45 anos", "45 a 61 anos", "61 anos ou mais"],
-  },
-  {
-    q: "Você gostaria de reduzir o cansaço e ter mais energia todos os dias?",
-    options: ["Sim, muito!", "Com certeza", "Seria maravilhoso"],
-  },
-  {
-    q: "Prefere uma solução 100% natural, sem efeitos colaterais?",
-    options: ["Sim, com certeza", "Sim, prefiro natural", "Sim, natural é melhor"],
-  },
-  {
-    q: "Você gostaria de ajudar seu pâncreas a produzir insulina de forma natural?",
-    options: ["Sim, quero muito", "Sim, é o que preciso", "Com certeza"],
-  },
-  {
-    q: "Se pudesse controlar sua glicose sem sofrimento, você começaria hoje?",
-    options: ["Sim, começaria agora", "Sim, quero mudar", "Quero acreditar"],
-  },
-  {
-    q: "Você está disposto(a) a experimentar por 30 dias com garantia?",
-    options: ["Sim, com certeza", "Sim, quero testar"],
-  },
-] as const;
-
+/* -------------------- Data -------------------- */
 const CHECKOUT_URL = "https://checkout.wiven.com.br/checkout/cmrk289w90i5f01pvn2yblhh9?offer=MJT8T3B";
+const FEEDBACK_VIDEO_ID = "kDT8CZakXVc";
 
-/* -------------------------------------------------------------------------- */
-/*  Section components                                                        */
-/* -------------------------------------------------------------------------- */
-
-function Quiz({
-  id,
-  title,
-  subtitle,
-  questions,
-  onDone,
-  ctaColor = "green",
-}: {
-  id: string;
-  title: string;
-  subtitle?: string;
-  questions: readonly { q: string; options: readonly string[] }[];
-  onDone: (answers: string[]) => void;
-  ctaColor?: "green" | "red";
-}) {
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
-  const total = questions.length;
-  const current = questions[step];
-  const progress = Math.round(((step) / total) * 100);
-
-  useEffect(() => {
-    trackEvent("QuizStart", { quiz_id: id });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  function choose(opt: string) {
-    const next = [...answers, opt];
-    trackEvent("QuizAnswer", {
-      quiz_id: id,
-      step: step + 1,
-      total,
-      question: current.q,
-      answer: opt,
-    });
-    if (step + 1 >= total) {
-      trackEvent("QuizComplete", { quiz_id: id, answers: next });
-      onDone(next);
-      return;
-    }
-    setAnswers(next);
-    setStep(step + 1);
-  }
-
-  const btnClass =
-    ctaColor === "red"
-      ? "bg-[oklch(0.58_0.22_27)] hover:bg-[oklch(0.52_0.22_27)] text-white"
-      : "bg-primary hover:bg-[oklch(0.44_0.14_150)] text-primary-foreground";
-
-  return (
-    <section className="w-full bg-white py-12 px-5">
-      <div className="mx-auto w-full max-w-2xl">
-        <h2 className="text-center text-2xl md:text-4xl font-bold text-foreground">
-          {title}
-        </h2>
-        {subtitle ? (
-          <p className="mt-3 text-center text-lg md:text-xl text-muted-foreground">
-            {subtitle}
-          </p>
-        ) : null}
-
-        <div className="mt-8 rounded-2xl border-2 border-[oklch(0.90_0.03_150)] bg-white p-6 md:p-8 shadow-sm">
-          <div className="mb-5">
-            <div className="flex items-center justify-between text-base md:text-lg font-semibold text-muted-foreground">
-              <span>
-                Pergunta {step + 1} de {total}
-              </span>
-              <span>{progress}%</span>
-            </div>
-            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-[oklch(0.94_0.02_150)]">
-              <div
-                className="h-full bg-primary transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-
-          <h3 className="text-xl md:text-2xl font-semibold text-foreground leading-snug">
-            {current.q}
-          </h3>
-
-          <div className="mt-6 flex flex-col gap-3">
-            {current.options.map((opt) => (
-              <button
-                key={opt}
-                onClick={() => choose(opt)}
-                className={`w-full rounded-xl px-6 py-5 text-lg md:text-xl font-semibold transition active:scale-[0.98] shadow-md ${btnClass}`}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Page                                                                      */
-/* -------------------------------------------------------------------------- */
-
-type Stage =
-  | "hero"
-  | "quiz1"
-  | "feedbacks"
-  | "quiz2"
-  | "loading"
-  | "result"
-  | "vsl2"
-  | "checkout";
-
-const VIDEO_ID_2 = "kDT8CZakXVc";
-
-/* -------------------------------------------------------------------------- */
-/*  Feedbacks (prova social — substitui o primeiro vídeo)                     */
-/* -------------------------------------------------------------------------- */
-
-const FEEDBACKS: {
-  img?: string;
-  name: string;
-  location: string;
-  stars: number;
-  text: string;
-}[] = [
+const FEEDBACKS = [
   {
     img: feedbackMulherAsset.url,
     name: "Ana Paula, 42 anos",
     location: "Belo Horizonte — MG",
-    stars: 5,
-    text:
-      "Eu vivia cansada, com sede o tempo todo e sem energia pro meu filho. Depois de 3 semanas usando a Garrafada minha glicose baixou e voltei a brincar com ele sem medo. Parece milagre 🙏",
+    text: "Eu vivia cansada, com sede o tempo todo e sem energia. Depois de 3 semanas usando a Garrafada minha glicose baixou e voltei a viver com disposição. Parece milagre 🙏",
   },
   {
     img: feedbackRapazAsset.url,
     name: "Lucas M., 29 anos",
     location: "Curitiba — PR",
-    stars: 5,
-    text:
-      "Descobri diabetes cedo e fiquei desesperado. Não queria depender de remédio pra vida toda. A Garrafada Natural me ajudou a estabilizar a glicose e hoje me sinto no controle da minha saúde.",
+    text: "Descobri diabetes cedo e fiquei desesperado. A Garrafada Natural me ajudou a estabilizar a glicose. Hoje me sinto no controle da minha saúde.",
   },
   {
-    // 3º feedback só em texto, reforço social
+    img: null as string | null,
     name: "Maria de Fátima, 68 anos",
     location: "Recife — PE",
-    stars: 5,
-    text:
-      "Minha filha comprou pra mim e eu não acreditava. Tomo todos os dias, parei de acordar de madrugada pra ir no banheiro e o médico ficou impressionado com o exame. Recomendo a todos!",
+    text: "Minha filha comprou pra mim. Tomo todos os dias, parei de acordar de madrugada pro banheiro e o médico ficou impressionado com meu exame!",
+  },
+  {
+    img: null as string | null,
+    name: "José Antônio, 57 anos",
+    location: "Salvador — BA",
+    text: "Já tinha tentado de tudo. Em 30 dias meus resultados mudaram. Recomendo pra qualquer um que sofre com diabetes como eu sofria.",
   },
 ];
 
-function Feedbacks({ onContinue }: { onContinue: () => void }) {
+const BENEFITS = [
+  { icon: "🩸", title: "Ajuda a controlar a glicose", desc: "Fórmula que atua no equilíbrio natural dos níveis de açúcar no sangue." },
+  { icon: "⚡", title: "Mais energia e disposição", desc: "Diga adeus ao cansaço constante e volte a fazer o que ama." },
+  { icon: "💚", title: "100% natural, sem efeitos colaterais", desc: "Feito com plantas medicinais reconhecidas há gerações." },
+  { icon: "🌿", title: "Apoia a saúde do pâncreas", desc: "Contribui para o funcionamento do órgão responsável pela insulina." },
+  { icon: "💧", title: "Reduz sede e idas ao banheiro", desc: "Volte a dormir a noite inteira sem interrupções." },
+  { icon: "🛡️", title: "Previne complicações graves", desc: "Cuide-se agora para evitar visão comprometida, feridas e amputações." },
+];
+
+const FAQ = [
+  {
+    q: "A Garrafada Natural realmente funciona?",
+    a: "Sim. Milhares de pessoas já relataram melhora significativa nos níveis de glicose, disposição e qualidade de sono. É uma fórmula natural, sem promessas mágicas — só resultado com uso contínuo.",
+  },
+  {
+    q: "Preciso parar meus remédios?",
+    a: "Não. A Garrafada é um complemento natural e não substitui a orientação médica. Continue seu tratamento normalmente.",
+  },
+  {
+    q: "Quanto tempo para ver resultados?",
+    a: "A maioria das pessoas relata melhoras já nas primeiras 2 a 3 semanas de uso contínuo.",
+  },
+  {
+    q: "Tem efeito colateral?",
+    a: "Não. É 100% natural, feita com ingredientes usados há décadas na medicina popular brasileira.",
+  },
+  {
+    q: "E se eu não gostar?",
+    a: "Você tem 7 dias de garantia. Se não gostar, devolvemos 100% do seu dinheiro. Sem burocracia.",
+  },
+];
+
+/* -------------------- Scarcity bar -------------------- */
+function ScarcityBar() {
+  const [seconds, setSeconds] = useState(15 * 60);
   useEffect(() => {
-    trackEvent("ViewFeedbacks", { section: "social_proof" });
+    const t = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(t);
   }, []);
+  const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const ss = String(seconds % 60).padStart(2, "0");
+  const pct = Math.max(0, (seconds / (15 * 60)) * 100);
   return (
-    <section className="min-h-[100svh] w-full bg-[oklch(0.98_0.02_150)] px-5 py-8 flex items-center">
-      <div className="mx-auto w-full max-w-2xl">
-        <div className="text-center">
-          <span className="inline-block rounded-full bg-[oklch(0.93_0.06_150)] px-3 py-1 text-xs md:text-sm font-semibold text-[oklch(0.30_0.10_150)]">
-            ⭐ Mais de 12.000 pessoas já usaram
-          </span>
-          <h2 className="mt-3 text-xl md:text-3xl font-extrabold text-foreground leading-tight">
-            Veja quem já está{" "}
-            <span className="text-primary">recuperando a saúde</span> com a
-            Garrafada Natural
-          </h2>
-          <p className="mt-2 text-sm md:text-base text-muted-foreground">
-            Relatos reais de pessoas como você
-          </p>
-        </div>
-
-        <div className="mt-6 space-y-4">
-          {FEEDBACKS.map((f) => (
-            <div
-              key={f.name}
-              className="rounded-2xl border-2 border-[oklch(0.90_0.03_150)] bg-white p-5 shadow-sm"
-            >
-              <div className="flex items-start gap-4">
-                {f.img ? (
-                  <img
-                    src={f.img}
-                    alt={f.name}
-                    className="h-16 w-16 flex-shrink-0 rounded-full object-cover ring-2 ring-[oklch(0.93_0.06_150)]"
-                  />
-                ) : (
-                  <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[oklch(0.93_0.06_150)] text-2xl font-bold text-[oklch(0.30_0.10_150)] ring-2 ring-[oklch(0.90_0.03_150)]">
-                    {f.name[0]}
-                  </div>
-                )}
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-bold text-foreground">{f.name}</p>
-                    <span className="text-xs rounded-full bg-[oklch(0.93_0.06_150)] px-2 py-0.5 font-semibold text-[oklch(0.30_0.10_150)]">
-                      ✔ Compra verificada
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{f.location}</p>
-                  <p className="mt-1 text-yellow-500 text-sm">
-                    {"★".repeat(f.stars)}
-                  </p>
-                  <p className="mt-2 text-sm md:text-base leading-relaxed text-foreground">
-                    "{f.text}"
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 text-center">
-          <div className="mb-3 inline-block rounded-full bg-[oklch(0.30_0.10_150)] px-4 py-1.5 text-sm md:text-base font-bold text-white shadow-md animate-pulse">
-            ✅ Próximo passo liberado!
-          </div>
-          <button
-            onClick={() => {
-              trackEvent("CTAClick", { cta: "feedbacks_continue" });
-              onContinue();
-            }}
-            className="w-full max-w-xl rounded-2xl bg-primary px-6 py-4 text-base md:text-lg font-extrabold uppercase text-primary-foreground shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.44_0.14_150)] active:scale-[0.98]"
-          >
-            Continuar para minha análise personalizada →
-          </button>
+    <div className="sticky top-0 z-50 w-full bg-[oklch(0.58_0.22_27)] text-white shadow-md">
+      <div className="mx-auto flex max-w-4xl flex-col items-center gap-1 px-4 py-2 text-center">
+        <p className="text-xs sm:text-sm font-bold">
+          ⚠️ OFERTA VÁLIDA SOMENTE HOJE — expira em{" "}
+          <span className="tabular-nums font-extrabold">{mm}:{ss}</span>
+        </p>
+        <div className="h-1 w-full overflow-hidden rounded-full bg-white/25">
+          <div
+            className="h-full bg-white transition-[width] duration-1000 ease-linear"
+            style={{ width: `${pct}%` }}
+          />
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
-function Index() {
-  const [stage, setStage] = useState<Stage>("hero");
-  const [answers2, setAnswers2] = useState<string[]>([]);
-  const [vsl2Seconds, setVsl2Seconds] = useState(0);
-  const VSL2_UNLOCK = 60;
-  const vsl2Unlocked = vsl2Seconds >= VSL2_UNLOCK;
-  const vsl2BtnRef = useRef<HTMLDivElement | null>(null);
-
-  // When a VSL unlock happens, gently scroll the CTA into view so the lead
-  // never has to hunt for the next step.
+/* -------------------- Rotating feedbacks -------------------- */
+function FeedbacksCarousel() {
+  const [i, setI] = useState(0);
   useEffect(() => {
-    if (vsl2Unlocked && vsl2BtnRef.current) {
-      vsl2BtnRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [vsl2Unlocked]);
+    const t = setInterval(() => setI((v) => (v + 1) % FEEDBACKS.length), 4500);
+    return () => clearInterval(t);
+  }, []);
+  const f = FEEDBACKS[i];
+  return (
+    <div className="relative mx-auto mt-6 min-h-[220px] w-full max-w-xl">
+      <div
+        key={i}
+        className="animate-in fade-in slide-in-from-right-8 duration-500 rounded-2xl border-2 border-[oklch(0.90_0.03_150)] bg-white p-5 shadow-md"
+      >
+        <div className="flex items-start gap-4">
+          {f.img ? (
+            <img
+              src={f.img}
+              alt={f.name}
+              className="h-16 w-16 flex-shrink-0 rounded-full object-cover ring-2 ring-[oklch(0.93_0.06_150)]"
+            />
+          ) : (
+            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[oklch(0.93_0.06_150)] text-2xl font-bold text-[oklch(0.30_0.10_150)] ring-2 ring-[oklch(0.90_0.03_150)]">
+              {f.name[0]}
+            </div>
+          )}
+          <div className="flex-1 text-left">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="font-bold text-foreground">{f.name}</p>
+              <span className="rounded-full bg-[oklch(0.93_0.06_150)] px-2 py-0.5 text-xs font-semibold text-[oklch(0.30_0.10_150)]">
+                ✔ Compra verificada
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">{f.location}</p>
+            <p className="mt-1 text-sm text-yellow-500">★★★★★</p>
+            <p className="mt-2 text-sm md:text-base leading-relaxed text-foreground">"{f.text}"</p>
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 flex items-center justify-center gap-2">
+        {FEEDBACKS.map((_, idx) => (
+          <button
+            key={idx}
+            aria-label={`Feedback ${idx + 1}`}
+            onClick={() => setI(idx)}
+            className={`h-2 rounded-full transition-all ${idx === i ? "w-6 bg-primary" : "w-2 bg-[oklch(0.90_0.03_150)]"}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
+/* -------------------- FAQ -------------------- */
+function FAQItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-xl border border-[oklch(0.90_0.03_150)] bg-white shadow-sm">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
+      >
+        <span className="text-base md:text-lg font-semibold text-foreground">{q}</span>
+        <span className={`text-primary text-xl transition-transform ${open ? "rotate-45" : ""}`}>+</span>
+      </button>
+      {open && (
+        <div className="px-5 pb-4 text-sm md:text-base leading-relaxed text-muted-foreground">
+          {a}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* -------------------- Buy button -------------------- */
+function BuyButton({ source }: { source: string }) {
+  return (
+    <a
+      href={CHECKOUT_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() =>
+        trackEvent("InitiateCheckout", {
+          currency: "BRL",
+          value: 14.99,
+          content_name: "Garrafada Natural para Diabetes",
+          content_ids: ["garrafada-diabetes-14-99"],
+          num_items: 1,
+          source,
+        })
+      }
+      className="inline-block w-full max-w-xl rounded-2xl bg-[oklch(0.58_0.22_27)] px-6 py-5 text-center text-lg md:text-xl font-extrabold uppercase text-white shadow-xl ring-2 ring-white transition hover:bg-[oklch(0.52_0.22_27)] active:scale-[0.98]"
+    >
+      🌿 Quero minha Garrafada por R$ 14,99
+    </a>
+  );
+}
+
+/* -------------------- Page -------------------- */
+function Index() {
   useEffect(() => {
     trackEvent("ViewContent", {
       content_name: "Garrafada Natural para Diabetes",
@@ -516,358 +322,227 @@ function Index() {
     });
   }, []);
 
-  // Single-view flow: sempre iniciar cada etapa no topo da tela
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "auto" });
-    }
-  }, [stage]);
-
-  // Reset video unlock counter when leaving VSL2
-  useEffect(() => {
-    if (stage !== "vsl2") setVsl2Seconds(0);
-  }, [stage]);
-
-  // Loading -> result
-  useEffect(() => {
-    if (stage !== "loading") return;
-    const t = setTimeout(() => {
-      trackEvent("Lead", {
-        content_name: "Garrafada Natural para Diabetes",
-        quiz_answers: answers2,
-      });
-      setStage("result");
-    }, 3500);
-    return () => clearTimeout(t);
-  }, [stage, answers2]);
-
-  const perfil = useMemo(() => {
-    const idade = answers2[0] ?? "";
-    const tempo = answers2[1] ?? "";
-    const fe = answers2[4] ?? "";
-    let chance = 87;
-    if (fe.includes("dúvidas")) chance = 78;
-    if (fe.includes("acreditar")) chance = 84;
-    if (fe.includes("fé")) chance = 92;
-    return {
-      label: `Adulto ${idade || "diabético"} — ${tempo || "há algum tempo"}`,
-      chance,
-    };
-  }, [answers2]);
-
   return (
     <main className="min-h-[100svh] w-full bg-white text-foreground">
+      <ScarcityBar />
+
       {/* HERO */}
-      {stage === "hero" && (
-      <section className="min-h-[100svh] w-full bg-gradient-to-b from-[oklch(0.98_0.02_150)] to-white px-5 py-6 flex items-center">
-        <div className="mx-auto w-full max-w-3xl text-center">
+      <section className="w-full bg-gradient-to-b from-[oklch(0.98_0.02_150)] to-white px-5 pt-8 pb-10">
+        <div className="mx-auto max-w-3xl text-center">
           <span className="inline-block rounded-full bg-[oklch(0.93_0.06_150)] px-3 py-1 text-xs md:text-sm font-semibold text-[oklch(0.30_0.10_150)]">
             🌿 100% Natural • Feito no Brasil
           </span>
-          <h1 className="mt-3 text-2xl md:text-4xl font-extrabold leading-tight text-foreground">
-            Você está cansado(a) de viver{" "}
-            <span className="text-[oklch(0.58_0.22_27)]">
-              refém da diabetes?
-            </span>
+          <h1 className="mt-3 text-3xl md:text-5xl font-extrabold leading-tight text-foreground">
+            Garrafada Natural para <span className="text-primary">Diabetes</span>
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
-            Faça o teste gratuito agora e descubra como a{" "}
-            <strong className="text-foreground">Garrafada Natural</strong> pode
-            te ajudar a recuperar o controle da sua saúde e ter mais qualidade
-            de vida.
+          <p className="mt-2 text-lg md:text-2xl font-semibold text-foreground">
+            A receita caseira que está ajudando milhares de brasileiros a{" "}
+            <span className="text-[oklch(0.58_0.22_27)]">controlar a glicose sem sofrimento</span>.
           </p>
 
-          <div className="mt-4 flex justify-center">
+          <div className="mt-5 flex justify-center">
             <img
-              src={heroAsset.url}
-              alt="Senhora satisfeita segurando a Garrafada Natural"
-              className="w-full max-w-[240px] md:max-w-xs rounded-3xl shadow-xl object-cover"
+              src={receitaAsset.url}
+              alt="Garrafada Natural para Diabetes — receita natural"
+              className="w-full max-w-sm rounded-3xl shadow-xl object-cover"
             />
           </div>
 
-          <button
-            onClick={() => {
-              trackEvent("CTAClick", { cta: "hero_start_quiz" });
-              setStage("quiz1");
-            }}
-            className="mt-5 w-full max-w-xl rounded-2xl bg-[oklch(0.58_0.22_27)] px-6 py-4 md:py-5 text-lg md:text-xl font-extrabold uppercase text-white shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.52_0.22_27)] active:scale-[0.98]"
-          >
-            ✅ Fazer o teste grátis agora
-          </button>
-          <p className="mt-2 text-xs md:text-sm text-muted-foreground">
-            Leva menos de 1 minuto • Totalmente gratuito
+          <p className="mx-auto mt-5 max-w-2xl text-base md:text-lg leading-relaxed text-muted-foreground">
+            Se você vive <strong className="text-foreground">com medo de picos de glicose</strong>,
+            cansado, com sede constante e preocupado com complicações como
+            perda de visão ou amputações — <strong className="text-foreground">essa Garrafada foi feita para você</strong>.
+            Uma fórmula natural, barata e simples que age direto no{" "}
+            <strong className="text-foreground">pâncreas</strong>, ajudando seu corpo a
+            reequilibrar a produção de insulina de forma segura.
+          </p>
+
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <BuyButton source="hero" />
+            <p className="text-xs md:text-sm text-muted-foreground">
+              💚 Garantia de 7 dias • Pagamento único de R$ 14,99
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* DOR */}
+      <section className="w-full bg-[oklch(0.98_0.02_27)] px-5 py-12">
+        <div className="mx-auto max-w-2xl">
+          <h2 className="text-center text-2xl md:text-4xl font-extrabold text-foreground">
+            Você se identifica com algum desses sinais?
+          </h2>
+          <p className="mt-2 text-center text-base md:text-lg text-muted-foreground">
+            A diabetes descontrolada rouba sua paz, sua energia e seu futuro.
+          </p>
+          <ul className="mt-6 space-y-3 text-base md:text-lg">
+            {[
+              "Cansaço extremo mesmo depois de dormir",
+              "Sede constante e vontade de urinar toda hora",
+              "Medo de ter um pico de glicose a qualquer momento",
+              "Formigamentos nos pés, feridas que não cicatrizam",
+              "Preocupação com a visão, os rins e o coração",
+              "Frustração por depender só de remédios que dão efeito colateral",
+            ].map((t) => (
+              <li key={t} className="flex items-start gap-3 rounded-xl border border-[oklch(0.88_0.10_27)] bg-white p-4 shadow-sm">
+                <span className="text-[oklch(0.58_0.22_27)] font-bold">✗</span>
+                <span className="text-foreground">{t}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 text-center text-base md:text-lg font-semibold text-foreground">
+            👉 Existe uma saída natural, comprovada e ao seu alcance.
           </p>
         </div>
       </section>
-      )}
 
-      {/* QUIZ 1 */}
-      {stage === "quiz1" && (
-        <Quiz
-          id="quiz_dores"
-          title="Como a diabetes está afetando sua vida?"
-          subtitle="Responda com carinho, é rapidinho."
-          questions={QUIZ_1}
-          onDone={() => setStage("feedbacks")}
-        />
-      )}
-
-      {/* FEEDBACKS */}
-      {stage === "feedbacks" && <Feedbacks onContinue={() => setStage("quiz2")} />}
-
-      {/* QUIZ 2 */}
-      {stage === "quiz2" && (
-        <Quiz
-          id="quiz_perfil"
-          title="Vamos descobrir como a Garrafada pode te ajudar"
-          subtitle="Responda para liberar seu resultado personalizado"
-          questions={QUIZ_2}
-          onDone={(a) => {
-            setAnswers2(a);
-            setStage("loading");
-          }}
-        />
-      )}
-
-      {/* LOADING */}
-      {stage === "loading" && (
-        <section className="w-full bg-white px-5 py-20">
-          <div className="mx-auto flex max-w-lg flex-col items-center text-center">
-            <div className="h-16 w-16 animate-spin rounded-full border-4 border-[oklch(0.93_0.06_150)] border-t-primary" />
-            <h2 className="mt-6 text-2xl md:text-3xl font-bold text-foreground">
-              Analisando seu perfil...
-            </h2>
-            <p className="mt-3 text-lg text-muted-foreground">
-              Aguarde só um instante enquanto preparamos seu resultado
-              personalizado.
-            </p>
+      {/* SOBRE REMÉDIOS NATURAIS */}
+      <section className="w-full bg-white px-5 py-12">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-2xl md:text-4xl font-extrabold text-foreground text-center">
+            O poder dos remédios caseiros redescobertos
+          </h2>
+          <p className="mt-4 text-base md:text-lg leading-relaxed text-muted-foreground text-center">
+            Nos últimos anos, pesquisadores e médicos vêm redescobrindo o que
+            nossas avós já sabiam: <strong className="text-foreground">plantas medicinais brasileiras</strong>{" "}
+            têm ação real sobre o metabolismo, ajudando o corpo a regular a
+            glicose de forma natural. Aliados ao seu tratamento, esses
+            preparados caseiros estão mudando a vida de milhares de pessoas —
+            <strong className="text-foreground"> dentro de casa, sem sair da rotina</strong>.
+          </p>
+          <p className="mt-4 text-base md:text-lg leading-relaxed text-muted-foreground text-center">
+            A Garrafada Natural para Diabetes reúne essa sabedoria em uma
+            fórmula pronta, prática e barata — <strong className="text-foreground">para você começar hoje mesmo</strong>.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <img
+              src={heroAsset.url}
+              alt="Senhora satisfeita segurando a Garrafada Natural"
+              className="w-full max-w-xs rounded-2xl object-cover shadow-lg"
+            />
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
-      {/* RESULT */}
-      {stage === "result" && (
-        <section className="w-full bg-white px-5 py-14">
-          <div className="mx-auto max-w-2xl">
-            <div className="rounded-3xl border-2 border-[oklch(0.90_0.03_150)] bg-[oklch(0.99_0.01_150)] p-7 md:p-10 shadow-md text-center">
-              <span className="inline-block rounded-full bg-[oklch(0.93_0.06_150)] px-4 py-1.5 text-sm md:text-base font-bold text-[oklch(0.30_0.10_150)]">
-                ✔ Resultado personalizado
-              </span>
-              <h2 className="mt-4 text-2xl md:text-4xl font-extrabold text-foreground">
-                Seu Perfil:{" "}
-                <span className="text-primary">{perfil.label}</span>
-              </h2>
-              <p className="mt-6 text-xl md:text-2xl font-semibold text-foreground">
-                Sua chance estimada de obter os mesmos resultados:
-              </p>
-              <p className="mt-2 text-5xl md:text-6xl font-extrabold text-[oklch(0.52_0.14_150)]">
-                {perfil.chance}%
-              </p>
+      {/* BENEFÍCIOS */}
+      <section className="w-full bg-[oklch(0.98_0.02_150)] px-5 py-12">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-center text-2xl md:text-4xl font-extrabold text-foreground">
+            O que a Garrafada Natural faz por você
+          </h2>
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {BENEFITS.map((b) => (
+              <div key={b.title} className="rounded-2xl border-2 border-[oklch(0.90_0.03_150)] bg-white p-5 shadow-sm">
+                <p className="text-3xl">{b.icon}</p>
+                <h3 className="mt-2 text-lg md:text-xl font-bold text-foreground">{b.title}</h3>
+                <p className="mt-1 text-sm md:text-base text-muted-foreground leading-relaxed">{b.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 flex justify-center">
+            <BuyButton source="beneficios" />
+          </div>
+        </div>
+      </section>
 
-              <p className="mt-6 text-lg md:text-xl leading-relaxed text-muted-foreground">
-                Pessoas com o seu perfil estão tendo{" "}
-                <strong className="text-foreground">
-                  excelentes resultados
-                </strong>{" "}
-                com a Garrafada Natural. Você também pode voltar a ter{" "}
-                <strong className="text-foreground">mais energia</strong>,{" "}
-                <strong className="text-foreground">menos preocupação</strong>{" "}
-                e{" "}
-                <strong className="text-foreground">
-                  mais qualidade de vida
-                </strong>
-                .
-              </p>
-
-              <button
-                onClick={() => {
-                  trackEvent("CTAClick", { cta: "result_to_vsl2" });
-                  setStage("vsl2");
-                }}
-                className="mt-8 w-full rounded-2xl bg-[oklch(0.58_0.22_27)] px-6 py-6 text-lg md:text-2xl font-extrabold uppercase text-white shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.52_0.22_27)] active:scale-[0.98]"
-              >
-                🌿 Quero minha Garrafada Natural agora
-              </button>
+      {/* OFERTA / PREÇO */}
+      <section className="w-full bg-white px-5 py-12">
+        <div className="mx-auto max-w-2xl">
+          <div className="rounded-3xl border-2 border-[oklch(0.90_0.03_150)] bg-[oklch(0.99_0.01_150)] p-6 md:p-10 shadow-lg text-center">
+            <span className="inline-block rounded-full bg-[oklch(0.58_0.22_27)] px-4 py-1.5 text-sm font-bold text-white">
+              OFERTA RELÂMPAGO — SÓ HOJE
+            </span>
+            <h2 className="mt-4 text-2xl md:text-4xl font-extrabold text-foreground">
+              Garrafada Natural para Diabetes
+            </h2>
+            <img
+              src={receitaAsset.url}
+              alt="Receita natural para auxílio ao controle da glicemia"
+              className="mx-auto mt-4 w-full max-w-sm rounded-2xl object-cover shadow-md"
+            />
+            <div className="mt-6 flex items-baseline justify-center gap-3">
+              <span className="text-2xl text-muted-foreground line-through">R$ 49,90</span>
+              <span className="text-5xl md:text-6xl font-extrabold text-[oklch(0.58_0.22_27)]">R$ 14,99</span>
+            </div>
+            <p className="mt-1 text-sm md:text-base text-muted-foreground">Pagamento único • Sem mensalidades</p>
+            <div className="mt-6">
+              <BuyButton source="oferta_preco" />
+            </div>
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-[oklch(0.90_0.03_150)] bg-white p-3 text-center">
+                <p className="text-2xl">🔒</p>
+                <p className="mt-1 text-sm font-semibold text-foreground">Compra segura</p>
+              </div>
+              <div className="rounded-xl border border-[oklch(0.90_0.03_150)] bg-white p-3 text-center">
+                <p className="text-2xl">💚</p>
+                <p className="mt-1 text-sm font-semibold text-foreground">Garantia de 7 dias</p>
+              </div>
+              <div className="rounded-xl border border-[oklch(0.90_0.03_150)] bg-white p-3 text-center">
+                <p className="text-2xl">🚚</p>
+                <p className="mt-1 text-sm font-semibold text-foreground">Para todo o Brasil</p>
+              </div>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
-      {/* VSL 2 + Preço */}
-      {stage === "vsl2" && (
-        <section className="w-full bg-[oklch(0.98_0.02_150)] px-5 py-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-xl md:text-3xl font-bold text-foreground">
-              A criadora da Garrafada explica tudo sobre o produto
-            </h2>
+      {/* PERGUNTAS */}
+      <section className="w-full bg-[oklch(0.98_0.02_150)] px-5 py-12">
+        <div className="mx-auto max-w-2xl">
+          <h2 className="text-center text-2xl md:text-4xl font-extrabold text-foreground">
+            Perguntas frequentes
+          </h2>
+          <div className="mt-6 space-y-3">
+            {FAQ.map((item) => (
+              <FAQItem key={item.q} q={item.q} a={item.a} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* GARANTIA */}
+      <section className="w-full bg-white px-5 py-12">
+        <div className="mx-auto max-w-2xl rounded-3xl border-2 border-[oklch(0.90_0.03_150)] bg-[oklch(0.99_0.01_150)] p-6 md:p-10 text-center shadow-md">
+          <p className="text-5xl">💚</p>
+          <h2 className="mt-3 text-2xl md:text-4xl font-extrabold text-foreground">
+            Garantia incondicional de 7 dias
+          </h2>
+          <p className="mt-3 text-base md:text-lg text-muted-foreground leading-relaxed">
+            Experimente a Garrafada Natural sem risco nenhum. Se em 7 dias você
+            não estiver satisfeito(a), devolvemos <strong className="text-foreground">100% do seu dinheiro</strong>.
+            Sem burocracia, sem perguntas.
+          </p>
+        </div>
+      </section>
+
+      {/* FEEDBACKS + VÍDEO */}
+      <section className="w-full bg-[oklch(0.98_0.02_150)] px-5 py-12">
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="inline-block rounded-full bg-[oklch(0.93_0.06_150)] px-3 py-1 text-xs md:text-sm font-semibold text-[oklch(0.30_0.10_150)]">
+            ⭐ Mais de 12.000 pessoas já usaram
+          </span>
+          <h2 className="mt-3 text-2xl md:text-4xl font-extrabold text-foreground">
+            Quem já usa, recomenda
+          </h2>
+          <FeedbacksCarousel />
+
+          <div className="mt-10">
+            <h3 className="text-xl md:text-2xl font-bold text-foreground">
+              Veja um depoimento em vídeo
+            </h3>
             <div className="mt-4">
-              <VSL
-                videoId={VIDEO_ID_2}
-                label="vsl_criadora"
-                onTime={(s) => setVsl2Seconds((prev) => (s > prev ? s : prev))}
-              />
-            </div>
-
-            {/* Persuasive copy — always visible, deepens desire while user watches */}
-            <div className="mx-auto mt-10 max-w-xl space-y-5 text-left">
-              <div className="rounded-2xl border-2 border-[oklch(0.90_0.03_150)] bg-white p-6 shadow-sm">
-                <h3 className="text-xl md:text-2xl font-extrabold text-foreground">
-                  🌿 Por que essa receita funciona?
-                </h3>
-                <p className="mt-3 text-base md:text-lg leading-relaxed text-foreground">
-                  A fórmula age diretamente no{" "}
-                  <strong>pâncreas — o órgão responsável por produzir insulina</strong>.
-                  Quando ele volta a funcionar bem, o corpo passa a controlar a
-                  glicose de forma natural, você sente{" "}
-                  <strong>mais energia</strong>,{" "}
-                  <strong>menos cansaço</strong> e a{" "}
-                  <strong>sede constante desaparece</strong>.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border-2 border-[oklch(0.88_0.10_27)] bg-[oklch(0.98_0.03_27)] p-6 shadow-sm">
-                <h3 className="text-xl md:text-2xl font-extrabold text-[oklch(0.45_0.20_27)]">
-                  ⚠️ Não deixe chegar ao pior
-                </h3>
-                <p className="mt-3 text-base md:text-lg leading-relaxed text-foreground">
-                  Durante anos trabalhando dentro de hospitais e postos de saúde,
-                  a criadora viu de perto o que a diabetes descontrolada faz:{" "}
-                  <strong>pessoas perdendo a visão</strong>,{" "}
-                  <strong>amputando pés e pernas</strong>, familiares chorando
-                  na porta do centro cirúrgico. Isso pode ser evitado — e começa
-                  cuidando do pâncreas <em>hoje</em>.
-                </p>
-              </div>
-
-              <div className="rounded-2xl bg-[oklch(0.30_0.10_150)] p-6 text-center shadow-md">
-                <p className="text-base md:text-lg font-semibold text-white/90">
-                  Tudo isso por menos que uma pizza:
-                </p>
-                <div className="mt-2 flex items-baseline justify-center gap-3">
-                  <span className="text-xl text-white/60 line-through">R$ 49,90</span>
-                  <span className="text-4xl md:text-5xl font-extrabold text-white">
-                    R$ 14,99
-                  </span>
-                </div>
-                <p className="mt-2 text-sm md:text-base text-white/80">
-                  Pagamento único • Garantia de 7 dias
-                </p>
-              </div>
-            </div>
-
-            {vsl2Unlocked ? (
-              <div ref={vsl2BtnRef} className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="mb-3 inline-block rounded-full bg-[oklch(0.58_0.22_27)] px-4 py-1.5 text-sm md:text-base font-bold text-white shadow-md animate-pulse">
-                  ✅ Sua oferta foi liberada — clique abaixo
-                </div>
-                <button
-                  onClick={() => {
-                    trackEvent("CTAClick", { cta: "vsl2_to_checkout", watched_seconds: Math.round(vsl2Seconds) });
-                    setStage("checkout");
-                  }}
-                  className="w-full rounded-2xl bg-[oklch(0.58_0.22_27)] px-6 py-6 text-lg md:text-2xl font-extrabold uppercase text-white shadow-lg ring-2 ring-white transition hover:bg-[oklch(0.52_0.22_27)] active:scale-[0.98]"
-                >
-                  Quero garantir a minha agora →
-                </button>
-              </div>
-            ) : (
-              <p className="mt-6 text-base md:text-lg text-muted-foreground">
-                🎥 Continue assistindo — sua oferta será liberada em instantes.
-              </p>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* CHECKOUT */}
-      {stage === "checkout" && (
-        <section className="w-full bg-white px-5 py-14">
-          <div className="mx-auto max-w-2xl">
-            <div className="rounded-3xl border-2 border-[oklch(0.90_0.03_150)] bg-white p-6 md:p-10 shadow-lg">
-              <div className="flex flex-col items-center gap-5 text-center">
-                <img
-                  src={receitaAsset.url}
-                  alt="Receita natural para auxílio ao controle da glicemia"
-                  width={1080}
-                  height={1080}
-                  loading="lazy"
-                  className="w-full max-w-md rounded-2xl object-cover shadow-md"
-                />
-                <h2 className="text-2xl md:text-4xl font-extrabold text-foreground">
-                  Garrafada Natural para Diabetes
-                </h2>
-                <p className="text-lg md:text-xl text-muted-foreground">
-                  Fórmula 100% natural para te ajudar a recuperar o controle,
-                  mais energia e mais qualidade de vida.
-                </p>
-                <div className="flex items-baseline gap-3">
-                  <span className="text-2xl text-muted-foreground line-through">
-                    R$ 49,90
-                  </span>
-                  <span className="text-5xl md:text-6xl font-extrabold text-[oklch(0.58_0.22_27)]">
-                    R$ 14,99
-                  </span>
-                </div>
-
-                <a
-                  href={CHECKOUT_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() =>
-                    trackEvent("InitiateCheckout", {
-                      currency: "BRL",
-                      value: 14.99,
-                      content_name: "Garrafada Natural para Diabetes",
-                      content_ids: ["garrafada-diabetes-14-99"],
-                      num_items: 1,
-                      source: "checkout_section",
-                    })
-                  }
-                  className="w-full rounded-2xl bg-[oklch(0.58_0.22_27)] px-6 py-6 text-center text-xl md:text-2xl font-extrabold uppercase text-white shadow-xl ring-2 ring-white transition hover:bg-[oklch(0.52_0.22_27)] active:scale-[0.98]"
-                >
-                  Comprar agora por apenas R$ 14,99
-                </a>
-
-                <div className="grid w-full grid-cols-1 gap-3 pt-4 sm:grid-cols-3">
-                  <div className="rounded-xl border border-[oklch(0.90_0.03_150)] bg-[oklch(0.99_0.01_150)] p-4 text-center">
-                    <p className="text-2xl">🔒</p>
-                    <p className="mt-1 text-base font-semibold text-foreground">
-                      Compra segura
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Ambiente 100% protegido
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-[oklch(0.90_0.03_150)] bg-[oklch(0.99_0.01_150)] p-4 text-center">
-                    <p className="text-2xl">💚</p>
-                    <p className="mt-1 text-base font-semibold text-foreground">
-                      Garantia de 7 dias
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Satisfação ou reembolso
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-[oklch(0.90_0.03_150)] bg-[oklch(0.99_0.01_150)] p-4 text-center">
-                    <p className="text-2xl">🚚</p>
-                    <p className="mt-1 text-base font-semibold text-foreground">
-                      Entrega rápida
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Para todo o Brasil
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <VSL videoId={FEEDBACK_VIDEO_ID} label="feedback_video" />
             </div>
           </div>
-        </section>
-      )}
+
+          <div className="mt-10 flex justify-center">
+            <BuyButton source="feedbacks" />
+          </div>
+        </div>
+      </section>
 
       <footer className="border-t border-[oklch(0.90_0.03_150)] bg-white px-5 py-8 text-center text-sm text-muted-foreground">
-        <p>
-          © {new Date().getFullYear()} Garrafada Natural — Este produto não
-          substitui o acompanhamento médico.
-        </p>
+        <p>© {new Date().getFullYear()} Garrafada Natural — Este produto não substitui o acompanhamento médico.</p>
       </footer>
     </main>
   );
