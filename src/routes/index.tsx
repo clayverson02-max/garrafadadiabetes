@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import heroAsset from "@/assets/senhora-garrafada.jpeg.asset.json";
 import feedbackRapazAsset from "@/assets/feedback-rapaz.jpg.asset.json";
 import feedbackMulherAsset from "@/assets/feedback-mulher.jpg.asset.json";
