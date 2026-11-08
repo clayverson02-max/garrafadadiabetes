@@ -27,7 +27,15 @@ export function setMarketingConsent(allow: boolean) {
   else window.fbq?.("consent", "revoke");
   return enabled;
 }
+export function createEventId(source: Pick<Crypto, "getRandomValues"> & Partial<Pick<Crypto, "randomUUID">> = crypto) {
+  if (typeof source.randomUUID === "function") return source.randomUUID();
+  const bytes = source.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 15) | 64; bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
+  return [hex.slice(0,8),hex.slice(8,12),hex.slice(12,16),hex.slice(16,20),hex.slice(20)].join("-");
+}
 export function initialiseMarketing() {
+  try {
   if (!hasMarketingConsent()) return;
   if (!window.fbq) {
     const fn = ((...args: unknown[]) => { if (fn.callMethod) fn.callMethod(...args); else fn.queue.push(args); }) as PixelFunction;
@@ -42,10 +50,12 @@ export function initialiseMarketing() {
     window.alphabetTrackedViews ??= new Set();
     if (!window.alphabetTrackedViews.has(key)) { window.alphabetTrackedViews.add(key); trackMarketing(name); }
   }
+  } catch { /* Optional measurement must not interrupt the page. */ }
 }
 export function trackMarketing(eventName: EventName) {
+  try {
   if (!hasMarketingConsent()) return;
-  const id = crypto.randomUUID();
+  const id = createEventId();
   const custom = eventName === "PageView" ? {} : { content_name: OFFER.name, content_ids: [OFFER.id], content_type: "product", value: OFFER.price, currency: OFFER.currency, num_items: 1 };
   window.fbq?.("track", eventName, custom, { eventID: id });
   void fetch("/api/meta", {
@@ -53,4 +63,5 @@ export function trackMarketing(eventName: EventName) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ event_name: eventName, event_id: id, event_source_url: location.origin + location.pathname, consent: true, fbp: cookie("_fbp"), fbc: cookie("_fbc") }),
   }).catch(() => { /* Measurement must never block shopping. */ });
+  } catch { /* Continue shopping if browser tracking APIs are unavailable. */ }
 }

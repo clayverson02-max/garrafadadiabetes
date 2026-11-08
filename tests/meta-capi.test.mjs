@@ -17,6 +17,10 @@ const zodUrl = import.meta.resolve('zod');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText.replace('from "zod"', `from "${zodUrl}"`).replace('from "./offer"', 'from "./offer.mjs"');
 await fs.writeFile(path.join(tmp, 'handler.mjs'), compiled);
 const { handleMetaRequest } = await import(pathToFileURL(path.join(tmp, 'handler.mjs')).href);
+
+const browserSource = await fs.readFile(path.join(root, 'src/lib/marketing.ts'), 'utf8');
+await fs.writeFile(path.join(tmp, 'marketing.mjs'), ts.transpileModule(browserSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText.replace('from "./offer"', 'from "./offer.mjs"'));
+const { createEventId } = await import(pathToFileURL(path.join(tmp, 'marketing.mjs')).href);
 const event = { event_name: 'ViewContent', event_id: 'a3d8166f-6630-4e52-88f6-a45396008870', event_source_url: 'https://example.test/?private=not-forwarded', consent: true, fbp: 'fb.1.1794170000000.1234567' };
 const request = (body = event, headers = {}) => new Request('https://example.test/api/meta', { method: 'POST', headers: { Origin: 'https://example.test', 'Content-Type': 'application/json', Cookie: 'alphabet_marketing=allow', 'User-Agent': 'test-browser', ...headers }, body: JSON.stringify(body) });
 const config = { token: 'dummy-test-token', pixelId: '1670040038036599', version: 'v25.0' };
@@ -55,4 +59,11 @@ test('rejects oversized bodies and strips upstream diagnostics', async () => {
   assert.equal((await handleMetaRequest(request({ ...event, padding: 'x'.repeat(9000) }), config)).status, 400);
   const r = await handleMetaRequest(request(), { ...config, fetcher: async () => Response.json({ error: config.token }, { status: 400 }) });
   assert.equal(r.status, 502); assert.ok(!(await r.text()).includes(config.token));
+});
+
+test('uses a valid unique event ID when randomUUID is unavailable', () => {
+  const source = { getRandomValues: crypto.getRandomValues.bind(crypto) };
+  const first = createEventId(source); const second = createEventId(source);
+  assert.match(first, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  assert.notEqual(first, second);
 });
