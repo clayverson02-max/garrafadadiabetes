@@ -24,7 +24,7 @@ async function sha256(text: string): Promise<string> {
 }
 
 export const sendMetaEvent = createServerFn({ method: "POST" })
-  .inputValidator((data) => InputSchema.parse(data))
+  .validator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
     const pixelId = process.env.META_PIXEL_ID;
     const accessToken = process.env.META_ACCESS_TOKEN;

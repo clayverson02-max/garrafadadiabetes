@@ -34,7 +34,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -77,17 +77,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Garrafada Natural para Diabetes — Recupere o Controle da Sua Saúde" },
-      { name: "description", content: "Descubra a Garrafada Natural que está ajudando pessoas com diabetes a ter mais energia, menos preocupação e mais qualidade de vida. Faça o teste gratuito." },
-      { name: "author", content: "Garrafada Natural" },
-      { property: "og:title", content: "Garrafada Natural para Diabetes — Recupere o Controle da Sua Saúde" },
-      { property: "og:description", content: "Descubra a Garrafada Natural que está ajudando pessoas com diabetes a ter mais energia, menos preocupação e mais qualidade de vida. Faça o teste gratuito." },
+      { title: "Alphabet Activity Bundle — Printable Letter Activities" },
+      { name: "description", content: "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. One-time payment in Canadian dollars." },
+      { name: "author", content: "Alphabet Activity Bundle" },
+      { property: "og:title", content: "Alphabet Activity Bundle — Printable Letter Activities" },
+      { property: "og:description", content: "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. One-time payment in Canadian dollars." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Garrafada Natural para Diabetes — Recupere o Controle da Sua Saúde" },
-      { name: "twitter:description", content: "Descubra a Garrafada Natural que está ajudando pessoas com diabetes a ter mais energia, menos preocupação e mais qualidade de vida. Faça o teste gratuito." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c959f2cf-b803-4d05-ad0e-0deb53500239/id-preview-c301436e--3d3072d7-9ecf-421e-b096-e2e1293daab4.lovable.app-1783552040759.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c959f2cf-b803-4d05-ad0e-0deb53500239/id-preview-c301436e--3d3072d7-9ecf-421e-b096-e2e1293daab4.lovable.app-1783552040759.png" },
+      { name: "twitter:title", content: "Alphabet Activity Bundle — Printable Letter Activities" },
+      { name: "twitter:description", content: "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. One-time payment in Canadian dollars." },
+      { property: "og:image", content: "/alphabet/cover.webp" },
+      { name: "twitter:image", content: "/alphabet/cover.webp" },
     ],
     links: [
       {
@@ -99,13 +99,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" },
     ],
     scripts: [
-      {
-        children: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','1848963065789609');fbq('track','PageView');`,
-      },
-      {
-        src: "https://www.youtube.com/iframe_api",
-        async: true,
-      },
       {
         src: "https://cdn.utmify.com.br/scripts/utms/latest.js",
         async: true,
@@ -123,7 +116,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en-CA">
       <head>
         <HeadContent />
       </head>
