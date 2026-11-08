@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { AdvertisingConsent } from "../components/AdvertisingConsent";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -77,15 +78,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Alphabet Activity Bundle — Printable Letter Activities" },
-      { name: "description", content: "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. One-time payment in Canadian dollars." },
+      { title: "Alphabet Activity Bundle | Printable Letter Activities" },
+      { name: "description", content: "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. Pay once in Canadian dollars." },
       { name: "author", content: "Alphabet Activity Bundle" },
-      { property: "og:title", content: "Alphabet Activity Bundle — Printable Letter Activities" },
-      { property: "og:description", content: "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. One-time payment in Canadian dollars." },
+      { property: "og:title", content: "Alphabet Activity Bundle | Printable Letter Activities" },
+      { property: "og:description", content: "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. Pay once in Canadian dollars." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Alphabet Activity Bundle — Printable Letter Activities" },
-      { name: "twitter:description", content: "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. One-time payment in Canadian dollars." },
+      { name: "twitter:title", content: "Alphabet Activity Bundle | Printable Letter Activities" },
+      { name: "twitter:description", content: "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. Pay once in Canadian dollars." },
       { property: "og:image", content: "/alphabet/cover.webp" },
       { name: "twitter:image", content: "/alphabet/cover.webp" },
     ],
@@ -135,6 +136,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <AdvertisingConsent />
     </QueryClientProvider>
   );
 }
