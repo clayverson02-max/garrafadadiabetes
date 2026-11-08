@@ -1278,3 +1278,92 @@
   font-weight: 800;
   letter-spacing: 0.12em;
 }
+
+/* Short, locally hosted demonstrations; media downloads only on play. */
+.ab-activity-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 64px;
+  padding-top: 16px;
+  padding-bottom: 64px;
+}
+.ab-activity-preview-copy h2 {
+  font-size: clamp(28px, 3.6vw, 42px);
+  line-height: 1.1;
+  letter-spacing: -1px;
+  max-width: 440px;
+  margin: 12px 0 18px;
+}
+.ab-activity-preview-copy > p:not(.ab-eyebrow) {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.7;
+  max-width: 430px;
+}
+.ab-video-note {
+  display: block;
+  margin-top: 18px;
+  font-size: 13px;
+  color: #435349;
+}
+.ab-activity-preview-copy .ab-preview-link {
+  justify-content: flex-start;
+  margin-top: 20px;
+}
+.ab-activity-preview-player {
+  justify-self: center;
+  background: #f2f7ee;
+  border: 1px solid #dbe6dd;
+  border-radius: 18px;
+  padding: 12px;
+  width: min(100%, 310px);
+  overflow: hidden;
+}
+.ab-activity-preview-player video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3/5;
+  max-height: 470px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #17271e;
+}
+.ab-activity-preview-player figcaption {
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #435349;
+  padding: 10px 2px 0;
+}
+.ab-activity-preview-reverse .ab-activity-preview-copy {
+  order: 2;
+}
+.ab-activity-preview-reverse .ab-activity-preview-player {
+  order: 1;
+}
+@media (max-width: 600px) {
+  .ab-activity-preview {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding-bottom: 48px;
+  }
+  .ab-activity-preview-copy h2 {
+    font-size: 29px;
+    max-width: 340px;
+  }
+  .ab-activity-preview-copy > p:not(.ab-eyebrow) {
+    font-size: 15px;
+  }
+  .ab-activity-preview-player {
+    width: min(100%, 286px);
+  }
+  .ab-activity-preview-reverse .ab-activity-preview-copy,
+  .ab-activity-preview-reverse .ab-activity-preview-player {
+    order: initial;
+  }
+  .ab-activity-preview-player video {
+    max-height: 440px;
+  }
+}

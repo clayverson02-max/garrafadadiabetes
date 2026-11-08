@@ -400,6 +400,62 @@ function Gallery() {
     </div>
   );
 }
+function ActivityPreview({ kind }: { kind: "pages" | "formation" }) {
+  const pages = kind === "pages";
+  const file = pages ? "alphabet-pages-preview" : "letter-formation-preview";
+  const title = pages ? "Take a look beyond the cover." : "See the letter practice up close.";
+  return (
+    <section
+      className={`ab-section ab-wrap ab-activity-preview${pages ? "" : " ab-activity-preview-reverse"}`}
+      aria-labelledby={`preview-${kind}-title`}
+    >
+      <div className="ab-activity-preview-copy">
+        <p className="ab-eyebrow">{pages ? "A QUICK LOOK INSIDE" : "BEFORE YOU CHOOSE"}</p>
+        <h2 id={`preview-${kind}-title`}>{title}</h2>
+        <p>
+          {pages
+            ? "See the pages and hands-on activities in this short preview. Less guessing about what you’re getting. More ideas for your next lesson."
+            : "A closer look at letter tracing and formation. Choose a page that fits your learners and make it part of your next lesson."}
+        </p>
+        <span className="ab-video-note">Short activity preview · No sound</span>
+        {!pages && (
+          <a className="ab-preview-link" href="#offer">
+            Explore the bundle offer <ArrowDown size={16} />
+          </a>
+        )}
+      </div>
+      <figure className="ab-activity-preview-player">
+        <video
+          controls
+          playsInline
+          muted
+          preload="none"
+          poster={`${media}${file}.webp`}
+          width="480"
+          height={pages ? "800" : "816"}
+          aria-label={
+            pages
+              ? "Preview of alphabet workbook pages and a colouring activity"
+              : "Preview of letter formation and tracing worksheets"
+          }
+          onPlay={(event) => {
+            const current = event.currentTarget;
+            document.querySelectorAll<HTMLVideoElement>(".ab-page video").forEach((video) => {
+              if (video !== current) video.pause();
+            });
+          }}
+        >
+          <source src={`${media}${file}.mp4`} type="video/mp4" />
+          Your browser does not support this video.
+        </video>
+        <figcaption>
+          {pages ? "Alphabet activity pages in use" : "Letter formation and tracing examples"}
+        </figcaption>
+      </figure>
+    </section>
+  );
+}
+
 export const Route = createFileRoute("/")({ component: AlphabetPage });
 function AlphabetPage() {
   return (
@@ -507,6 +563,7 @@ function AlphabetPage() {
             ))}
           </div>
         </section>
+        <ActivityPreview kind="pages" />
         <section className="ab-section ab-wrap ab-demo">
           <div>
             <p className="ab-eyebrow">A CLOSER LOOK</p>
@@ -588,6 +645,7 @@ function AlphabetPage() {
             ))}
           </div>
         </section>
+        <ActivityPreview kind="formation" />
         <section id="offer" className="ab-offer-section">
           <div className="ab-offer ab-wrap">
             <div className="ab-offer-visual">
