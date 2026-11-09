@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiAdvertisingPolicyRouteImport } from './routes/api/advertising-policy'
 import { Route as ApiMetaRouteImport } from './routes/api/meta'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdvertisingPolicyRoute = ApiAdvertisingPolicyRouteImport.update({
+  id: '/api/advertising-policy',
+  path: '/api/advertising-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiMetaRoute = ApiMetaRouteImport.update({
@@ -25,27 +31,31 @@ const ApiMetaRoute = ApiMetaRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/advertising-policy': typeof ApiAdvertisingPolicyRoute
   '/api/meta': typeof ApiMetaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/advertising-policy': typeof ApiAdvertisingPolicyRoute
   '/api/meta': typeof ApiMetaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/advertising-policy': typeof ApiAdvertisingPolicyRoute
   '/api/meta': typeof ApiMetaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/meta'
+  fullPaths: '/' | '/api/advertising-policy' | '/api/meta'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/meta'
-  id: '__root__' | '/' | '/api/meta'
+  to: '/' | '/api/advertising-policy' | '/api/meta'
+  id: '__root__' | '/' | '/api/advertising-policy' | '/api/meta'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiAdvertisingPolicyRoute: typeof ApiAdvertisingPolicyRoute
   ApiMetaRoute: typeof ApiMetaRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/advertising-policy': {
+      id: '/api/advertising-policy'
+      path: '/api/advertising-policy'
+      fullPath: '/api/advertising-policy'
+      preLoaderRoute: typeof ApiAdvertisingPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/meta': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiAdvertisingPolicyRoute: ApiAdvertisingPolicyRoute,
   ApiMetaRoute: ApiMetaRoute,
 }
 export const routeTree = rootRouteImport

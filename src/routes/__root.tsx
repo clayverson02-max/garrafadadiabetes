@@ -13,8 +13,7 @@ import appCss from "../styles.css?url";
 import { AdvertisingConsent } from "../components/AdvertisingConsent";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
-const publicSiteUrl =
-  import.meta.env.VITE_PUBLIC_SITE_URL || "https://garrafadadiabetes.lovable.app";
+const publicSiteUrl = "https://alphabetactivity.lovable.app";
 const socialImageUrl = new URL("/alphabet/social-cover.jpg", publicSiteUrl).href;
 
 function NotFoundComponent() {
@@ -82,18 +81,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Alphabet Activity Bundle | Printable Letter Activities" },
+      { title: "Alphabet Activity Bundle | Your Next Letter Activity, Ready to Print" },
       {
         name: "description",
         content:
-          "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. Pay once in Canadian dollars.",
+          "Choose, print and use alphabet tracing, writing, colouring and puzzle activities in your next lesson. Explore real samples and short video previews.",
       },
       { name: "author", content: "Alphabet Activity Bundle" },
-      { property: "og:title", content: "Alphabet Activity Bundle | Printable Letter Activities" },
+      {
+        property: "og:title",
+        content: "Alphabet Activity Bundle | Your Next Letter Activity, Ready to Print",
+      },
       {
         property: "og:description",
         content:
-          "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. Pay once in Canadian dollars.",
+          "Choose, print and use alphabet tracing, writing, colouring and puzzle activities in your next lesson. Explore real samples and short video previews.",
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Alphabet Activity Bundle" },
@@ -104,11 +106,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Alphabet Activity Bundle with printable tracing, writing, colouring and letter puzzles",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Alphabet Activity Bundle | Printable Letter Activities" },
+      {
+        name: "twitter:title",
+        content: "Alphabet Activity Bundle | Your Next Letter Activity, Ready to Print",
+      },
       {
         name: "twitter:description",
         content:
-          "Printable alphabet activities for letter tracing, writing, colouring and puzzles. Explore actual page samples. Pay once in Canadian dollars.",
+          "Choose, print and use alphabet tracing, writing, colouring and puzzle activities in your next lesson. Explore real samples and short video previews.",
       },
       { property: "og:image", content: socialImageUrl },
       { name: "twitter:image", content: socialImageUrl },
@@ -121,12 +126,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", type: "image/svg+xml", href: "/alphabet/favicon.svg" },
       { rel: "apple-touch-icon", href: "/alphabet/apple-touch-icon.png" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap",
-      },
     ],
     scripts: [
       {
