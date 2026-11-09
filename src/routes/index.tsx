@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
+import { AlphabetProductShowcase } from "../components/AlphabetProductShowcase";
+import { AlphabetPreviewVideo } from "../components/AlphabetPreviewVideo";
 import { OFFER } from "../lib/offer";
 import { trackMarketing } from "../lib/marketing";
 import "./alphabet.css";
@@ -180,7 +182,7 @@ function AlphabetPage() {
     <main className="ab-page">
       <div className="ab-announcement">
         <Download size={14} />
-        <span>A little less prep for your next letter lesson.</span>
+        <span>Download. Print. Make it part of your lesson.</span>
         <span className="ab-announcement-extra">Digital download. No shipping.</span>
       </div>
       <header className="ab-header ab-wrap">
@@ -196,71 +198,24 @@ function AlphabetPage() {
           </span>
         </a>
         <span className="ab-header-note">
-          Printable activities.
+          Made for teachers.
           <br />
-          Ready for your next lesson.
+          Ready for letter time.
         </span>
       </header>
 
       <section className="ab-hero ab-wrap" id="top" aria-labelledby="hero-title">
         <div className="ab-hero-copy">
-          <p className="ab-eyebrow">
-            <span /> FOR YOUR NEXT LETTER LESSON
-          </p>
-          <h1 id="hero-title">
-            Your next alphabet activity.
-            <br />
-            <span className="ab-highlight">Already sorted.</span>
-          </h1>
-          <p className="ab-lead">
-            Tracing, writing, colouring and puzzles you can choose, print and bring to your next
-            lesson.
-          </p>
-          <div className="ab-hero-focus">
-            <span>Trace</span>
-            <span>Write</span>
-            <span>Colour</span>
-            <span>Build</span>
-          </div>
-          <p className="ab-scroll-cue">
-            <ArrowDown size={15} /> Take a look at what’s inside.
-          </p>
-          <p className="ab-small-note">
-            <Check size={15} /> Printable resources for teachers, tutors and families.
-          </p>
+          <p className="ab-eyebrow"><span /> READY-TO-PRINT ALPHABET ACTIVITIES</p>
+          <h1 id="hero-title">Less prep.<br /><span className="ab-highlight">More letter <span className="ab-word-highlight">practice.</span></span></h1>
+          <p className="ab-lead">Tracing, writing, colouring and puzzles.<br className="ab-desktop-break" /> Your next letter lesson starts with a page that’s already made.</p>
         </div>
-        <div className="ab-hero-visual">
-          <div className="ab-photo-label">
-            <span className="ab-dot" /> A PEEK AT THE ACTUAL ACTIVITIES
-          </div>
-          <img
-            className="ab-hero-photo"
-            src={media + "activity-sheets.webp"}
-            alt="Actual alphabet activity sheets, with tracing, pictures and writing practice"
-            width="1100"
-            height="1100"
-            fetchPriority="high"
-          />
-          <div className="ab-hero-note">
-            <span className="ab-note-icon">
-              <Printer size={23} />
-            </span>
-            <div>
-              <strong>
-                Choose a page.
-                <br />
-                Make it part of your lesson.
-              </strong>
-              <span>Print the activities you need.</span>
-            </div>
-          </div>
-          <span className="ab-watch-chip">
-            <span>
-              <Play size={15} fill="currentColor" />
-            </span>
-            Real activity previews below
-          </span>
+        <AlphabetProductShowcase />
+        <div className="ab-hero-focus" aria-label="Activity types in the bundle">
+          <span><PencilLine size={16} /> Trace</span><span><FileText size={16} /> Write</span>
+          <span><PencilLine size={16} /> Colour</span><span><Puzzle size={16} /> Build</span>
         </div>
+        <p className="ab-scroll-cue"><ArrowDown size={16} /> A closer look at your next lesson.</p>
       </section>
 
       <div className="ab-trust-row ab-wrap">
@@ -283,13 +238,12 @@ function AlphabetPage() {
           <div>
             <p className="ab-eyebrow">YOUR PREP LIST IS LONG ENOUGH</p>
             <h2>
-              Give yourself one less
+              You don’t need to make
               <br />
-              thing to make.
+              another worksheet tonight.
             </h2>
             <p>
-              Have a letter activity to hand when you need one. Start with a ready-made page and
-              focus on how you’ll use it with your learners.
+              Start with a ready-made activity. Choose your focus, print your pages and make the lesson your own.
             </p>
           </div>
           <ol>
@@ -326,13 +280,13 @@ function AlphabetPage() {
           <div>
             <p className="ab-eyebrow">WHAT YOU’LL HAVE TO HAND</p>
             <h2 id="deliverables-title">
-              Open the bundle.
+              Little letters.
               <br />
-              <span>See the possibilities.</span>
+              <span>Lots of ways to explore.</span>
             </h2>
           </div>
           <p>
-            Different activity types for your letter lessons. Here are examples of the materials.
+            One bundle. Different ways to trace, write, colour and build. Take a look at the actual materials.
           </p>
         </div>
         <div className="ab-deliverable-grid">
@@ -384,15 +338,15 @@ function AlphabetPage() {
           <div>
             <p className="ab-eyebrow">OPEN THE BUNDLE</p>
             <h2 id="inside-title">
-              One letter.
+              What’s on your
               <br />
-              <span>Plenty of ways in.</span>
+              <span>lesson plan?</span>
             </h2>
           </div>
           <p>
-            See what the activities look like.
+            Choose an activity below.
             <br />
-            Pick a type to explore.
+            See how it could fit your next lesson.
           </p>
         </div>
         <div className="ab-activity-buttons" aria-label="Choose an activity type">
@@ -408,7 +362,7 @@ function AlphabetPage() {
             </button>
           ))}
         </div>
-        <div className="ab-explorer">
+        <div className="ab-explorer" data-activity={activity.name}>
           <button
             className="ab-explorer-photo"
             aria-label={"Enlarge " + activity.name.toLowerCase() + " activity preview"}
@@ -463,15 +417,15 @@ function AlphabetPage() {
           <div>
             <p className="ab-eyebrow">SEE MORE THAN A COVER</p>
             <h2 id="watch-title">
-              A quick look.
+              See the pages.
               <br />
-              <span>A clearer picture.</span>
+              <span>Picture your next lesson.</span>
             </h2>
           </div>
           <p>
-            Short previews of pages and activities.
+            Real activity previews, without the guesswork.
             <br />
-            Tap to play. These clips have no sound.
+            Silent previews you can pause and replay.
           </p>
         </div>
         <div className="ab-videos">
@@ -482,27 +436,12 @@ function AlphabetPage() {
                 <span>{video.label}</span>
                 <Play size={14} />
               </div>
-              <video
-                controls
-                playsInline
-                muted
-                preload="none"
+              <AlphabetPreviewVideo
+                src={media + video.id + ".mp4"}
                 poster={media + video.poster}
-                width="480"
-                height="816"
-                aria-label={video.title + " video preview"}
-                onPlay={(event) => {
-                  const playing = event.currentTarget;
-                  document.querySelectorAll<HTMLVideoElement>(".ab-page video").forEach((item) => {
-                    if (item !== playing) item.pause();
-                  });
-                }}
-                onTimeUpdate={(event) => trackVideo(event.currentTarget, video.id)}
-                onEnded={(event) => trackVideo(event.currentTarget, video.id)}
-              >
-                <source src={media + video.id + ".mp4"} type="video/mp4" />
-                Your browser does not support this video.
-              </video>
+                title={video.title}
+                onProgress={(element) => trackVideo(element, video.id)}
+              />
               <div className="ab-video-copy">
                 <h3>{video.title}</h3>
                 <p>{video.note}</p>
@@ -520,9 +459,9 @@ function AlphabetPage() {
           <div className="ab-offer-gallery">
             <p className="ab-eyebrow">YOUR NEXT LETTER LESSON STARTS HERE</p>
             <h2 id="offer-title">
-              A bundle you can
+              Your next activity.
               <br />
-              <span>put to use.</span>
+              <span>Ready when you are.</span>
             </h2>
             <div className="ab-offer-grid">
               {[
