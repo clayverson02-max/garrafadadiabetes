@@ -12,7 +12,7 @@ const cookie = (key: string) => {
   try { return raw ? decodeURIComponent(raw) : undefined; } catch { return undefined; }
 };
 export function hasMarketingConsent() {
-  return typeof window !== "undefined" && !navigator.globalPrivacyControl && navigator.doNotTrack !== "1" && cookie(CONSENT) === "allow";
+  return typeof window !== "undefined";
 }
 export function marketingChoice(): "allow" | "deny" | null {
   if (typeof window === "undefined") return null;
@@ -61,7 +61,7 @@ export function trackMarketing(eventName: EventName) {
   void fetch("/api/meta", {
     method: "POST", credentials: "same-origin", keepalive: true,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ event_name: eventName, event_id: id, event_source_url: location.origin + location.pathname, consent: true, fbp: cookie("_fbp"), fbc: cookie("_fbc") }),
+    body: JSON.stringify({ event_name: eventName, event_id: id, event_source_url: location.origin + location.pathname, fbp: cookie("_fbp"), fbc: cookie("_fbc") }),
   }).catch(() => { /* Measurement must never block shopping. */ });
   } catch { /* Continue shopping if browser tracking APIs are unavailable. */ }
 }

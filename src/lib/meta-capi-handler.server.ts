@@ -4,7 +4,7 @@ import { META_PIXEL_ID, OFFER } from "./offer";
 const schema = z.object({
   event_name: z.enum(["PageView", "ViewContent", "InitiateCheckout"]),
   event_id: z.string().uuid(), event_source_url: z.string().url().max(2048),
-  consent: z.literal(true),
+  consent: z.boolean().optional(),
   fbp: z.string().regex(/^fb\.\d\.\d{10,16}\.\d{1,30}$/).optional(),
   fbc: z.string().regex(/^fb\.\d\.\d{10,16}\.[A-Za-z0-9_-]{1,512}$/).optional(),
 }).strict();
@@ -22,13 +22,12 @@ export async function handleMetaRequest(request: Request, config: Config = {}) {
   const own = new URL(request.url).origin;
   if (request.headers.get("origin") !== own || request.headers.get("sec-fetch-site") === "cross-site") return json(403, { ok: false });
   if (!request.headers.get("content-type")?.startsWith("application/json")) return json(415, { ok: false });
-  if (!/(?:^|;\s*)alphabet_marketing=allow(?:;|$)/.test(request.headers.get("cookie") ?? "")) return json(403, { ok: false });
   let data: z.infer<typeof schema>;
   try { data = schema.parse(await limitedBody(request)); } catch { return json(400, { ok: false }); }
   const source = new URL(data.event_source_url);
   if (source.origin !== own) return json(403, { ok: false });
   const token = config.token ?? process.env.META_ACCESS_TOKEN;
-  const pixelId = config.pixelId ?? process.env.META_PIXEL_ID ?? META_PIXEL_ID;
+  const pixelId = config.pixelId ?? META_PIXEL_ID;
   const version = config.version ?? process.env.META_GRAPH_API_VERSION ?? "v25.0";
   if (!token || pixelId !== META_PIXEL_ID || !/^v\d+\.0$/.test(version)) return json(503, { ok: false, code: "tracking_unavailable" });
   const agent = request.headers.get("user-agent") ?? "";
