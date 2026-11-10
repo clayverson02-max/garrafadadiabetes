@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowDown,
   ArrowRight,
   ArrowUpRight,
   Check,
@@ -14,7 +13,7 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
-import { AlphabetProductShowcase } from "../components/AlphabetProductShowcase";
+import { AlphabetProductGallery } from "../components/AlphabetProductGallery";
 import { AlphabetPreviewVideo } from "../components/AlphabetPreviewVideo";
 import { OFFER } from "../lib/offer";
 import { trackMarketing } from "../lib/marketing";
@@ -127,7 +126,6 @@ function AlphabetPage() {
     alt: "Letter formation sample",
   });
   const dialog = useRef<HTMLDialogElement>(null);
-  const checkoutFrame = useRef<HTMLIFrameElement>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState(OFFER.checkoutUrl);
   const checkoutTracked = useRef(false);
@@ -156,15 +154,20 @@ function AlphabetPage() {
       trackMarketing("InitiateCheckout");
       checkoutTracked.current = true;
     }
-    requestAnimationFrame(() =>
-      document.getElementById("checkout")?.scrollIntoView({
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "instant"
-          : "smooth",
-        block: "start",
-      }),
-    );
+    if (checkoutOpen) scrollToCheckout();
   };
+  const scrollToCheckout = () => {
+    document.getElementById("checkout")?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+      block: "start",
+    });
+  };
+  useEffect(() => {
+    if (checkoutOpen) scrollToCheckout();
+  }, [checkoutOpen]);
+
   const trackVideo = (element: HTMLVideoElement, id: (typeof videos)[number]["id"]) => {
     if (!Number.isFinite(element.duration) || element.duration <= 0) return;
     for (const percent of [25, 50, 75, 100] as const) {
@@ -182,7 +185,7 @@ function AlphabetPage() {
     <main className="ab-page">
       <div className="ab-announcement">
         <Download size={14} />
-        <span>Download. Print. Make it part of your lesson.</span>
+        <span>Digital activities. Download and print.</span>
         <span className="ab-announcement-extra">Digital download. No shipping.</span>
       </div>
       <header className="ab-header ab-wrap">
@@ -198,79 +201,128 @@ function AlphabetPage() {
           </span>
         </a>
         <span className="ab-header-note">
-          Made for teachers.
+          Ready for your next lesson.
           <br />
-          Ready for letter time.
+          Digital files, no shipping.
         </span>
       </header>
 
-      <section className="ab-hero ab-wrap" id="top" aria-labelledby="hero-title">
-        <div className="ab-hero-copy">
-          <p className="ab-eyebrow"><span /> READY-TO-PRINT ALPHABET ACTIVITIES</p>
-          <h1 id="hero-title">Less prep.<br /><span className="ab-highlight">More letter <span className="ab-word-highlight">practice.</span></span></h1>
-          <p className="ab-lead">Tracing, writing, colouring and puzzles.<br className="ab-desktop-break" /> Your next letter lesson starts with a page that’s already made.</p>
+      <div id="top" className="ab-product-breadcrumb ab-wrap">
+        Digital resources <span aria-hidden="true">/</span> Alphabet activities
+      </div>
+      <section id="offer" className="ab-product ab-wrap" aria-labelledby="product-title">
+        <AlphabetProductGallery
+          onEnlarge={openSample}
+          onVideoProgress={(element) => trackVideo(element, "writing-demo")}
+        />
+        <div className="ab-product-info">
+          <p className="ab-eyebrow">LESS PREP. MORE LETTER PRACTICE.</p>
+          <h1 id="product-title">
+            Alphabet
+            <br />
+            Activity Bundle
+          </h1>
+          <p className="ab-product-description">
+            Your next letter lesson, already on the page. Printable tracing, writing, colouring and
+            puzzles to choose from.
+          </p>
+          <div className="ab-product-badges">
+            <span>
+              <Download size={14} /> Digital download
+            </span>
+            <span>
+              <Printer size={14} /> Print at home or school
+            </span>
+          </div>
+          <div className="ab-product-price">
+            <strong>{money(OFFER.price)}</strong>
+            <span>Canadian dollars · One payment</span>
+          </div>
+          <a
+            className="ab-button ab-checkout-button"
+            href={checkoutUrl}
+            aria-expanded={checkoutOpen}
+            aria-controls={checkoutOpen ? "checkout" : undefined}
+            onClick={(event) => {
+              if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+              event.preventDefault();
+              beginCheckout();
+            }}
+          >
+            {checkoutOpen ? "Continue to checkout" : "Get my activity bundle"}
+            <ArrowRight size={18} />
+          </a>
+          <p className="ab-product-payment">
+            <ShieldCheck size={16} /> Payment processed by Hotmart
+          </p>
+          <ul className="ab-product-includes">
+            <li>
+              <Check size={17} /> Letter sheets and tracing cards
+            </li>
+            <li>
+              <Check size={17} /> Read, trace and write practice
+            </li>
+            <li>
+              <Check size={17} /> Colouring, matching and paper puzzles
+            </li>
+          </ul>
+          <div className="ab-product-delivery">
+            <Download size={20} />
+            <p>
+              <strong>Digital files. No shipping.</strong>
+              <br />
+              Access instructions arrive by email after payment approval. Printed books and
+              stationery are not included.
+            </p>
+          </div>
+          <p className="ab-small-note">
+            Final currency, taxes, licence and refund terms are shown at checkout.
+          </p>
+          <a href="#what-you-get" className="ab-text-link">
+            Take a look inside <ArrowUpRight size={15} />
+          </a>
         </div>
-        <AlphabetProductShowcase />
-        <div className="ab-hero-focus" aria-label="Activity types in the bundle">
-          <span><PencilLine size={16} /> Trace</span><span><FileText size={16} /> Write</span>
-          <span><PencilLine size={16} /> Colour</span><span><Puzzle size={16} /> Build</span>
-        </div>
-        <p className="ab-scroll-cue"><ArrowDown size={16} /> A closer look at your next lesson.</p>
       </section>
-
+      {checkoutOpen && (
+        <div id="checkout" className="ab-checkout ab-wrap">
+          <div className="ab-checkout-heading">
+            <div>
+              <p className="ab-eyebrow">COMPLETE YOUR ORDER</p>
+              <h3>Your next activity is waiting.</h3>
+            </div>
+            <a
+              href={checkoutUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ab-text-link"
+            >
+              Open checkout in a new tab <ArrowUpRight size={16} />
+            </a>
+          </div>
+          <iframe
+            title="Secure Hotmart checkout"
+            src={checkoutUrl}
+            allow="payment *; clipboard-write"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+          <p>Confirm the total and currency shown by Hotmart before paying.</p>
+        </div>
+      )}
       <div className="ab-trust-row ab-wrap">
         <span>
           <Download size={18} /> Digital materials
         </span>
         <span>
-          <Printer size={18} /> Print at home or school
+          <Printer size={18} /> Print the pages you need
         </span>
         <span>
-          <Puzzle size={18} /> Different ways to practise
+          <Puzzle size={18} /> Hands-on activities
         </span>
         <span>
-          <ShieldCheck size={18} /> Payment through Hotmart
+          <ShieldCheck size={18} /> Checkout by Hotmart
         </span>
       </div>
 
-      <section className="ab-prep-section">
-        <div className="ab-wrap ab-prep">
-          <div>
-            <p className="ab-eyebrow">YOUR PREP LIST IS LONG ENOUGH</p>
-            <h2>
-              You don’t need to make
-              <br />
-              another worksheet tonight.
-            </h2>
-            <p>
-              Start with a ready-made activity. Choose your focus, print your pages and make the lesson your own.
-            </p>
-          </div>
-          <ol>
-            <li>
-              <span>01</span>
-              <div>
-                <h3>Choose the focus.</h3>
-                <p>Letter shapes, writing or a practical activity.</p>
-              </div>
-            </li>
-            <li>
-              <span>02</span>
-              <div>
-                <h3>Print what you need.</h3>
-                <p>Prepare the pages and supplies for your task.</p>
-              </div>
-            </li>
-            <li>
-              <span>03</span>
-              <div>
-                <h3>Make it your lesson.</h3>
-                <p>Add the guidance and support your learners need.</p>
-              </div>
-            </li>
-          </ol>
-        </div>
-      </section>
       <section
         id="what-you-get"
         className="ab-section ab-wrap ab-deliverables"
@@ -278,15 +330,16 @@ function AlphabetPage() {
       >
         <div className="ab-section-heading">
           <div>
-            <p className="ab-eyebrow">WHAT YOU’LL HAVE TO HAND</p>
+            <p className="ab-eyebrow">WHAT’S IN THE BUNDLE</p>
             <h2 id="deliverables-title">
-              Little letters.
+              Four ways to practise.
               <br />
-              <span>Lots of ways to explore.</span>
+              <span>One handy bundle.</span>
             </h2>
           </div>
           <p>
-            One bundle. Different ways to trace, write, colour and build. Take a look at the actual materials.
+            One bundle. Different ways to trace, write, colour and build. Take a look at the actual
+            materials.
           </p>
         </div>
         <div className="ab-deliverable-grid">
@@ -332,6 +385,45 @@ function AlphabetPage() {
           <Download size={15} /> Digital materials to print. Pens, toys and printed books shown in
           photos are not included.
         </p>
+      </section>
+      <section className="ab-prep-section">
+        <div className="ab-wrap ab-prep">
+          <div>
+            <p className="ab-eyebrow">YOUR PREP LIST IS LONG ENOUGH</p>
+            <h2>
+              You don’t need to make
+              <br />
+              another worksheet tonight.
+            </h2>
+            <p>
+              Start with a ready-made activity. Choose your focus, print your pages and make the
+              lesson your own.
+            </p>
+          </div>
+          <ol>
+            <li>
+              <span>01</span>
+              <div>
+                <h3>Choose the focus.</h3>
+                <p>Letter shapes, writing or a practical activity.</p>
+              </div>
+            </li>
+            <li>
+              <span>02</span>
+              <div>
+                <h3>Print what you need.</h3>
+                <p>Prepare the pages and supplies for your task.</p>
+              </div>
+            </li>
+            <li>
+              <span>03</span>
+              <div>
+                <h3>Make it your lesson.</h3>
+                <p>Add the guidance and support your learners need.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
       </section>
       <section id="inside" className="ab-section ab-inside ab-wrap" aria-labelledby="inside-title">
         <div className="ab-section-heading">
@@ -452,122 +544,6 @@ function AlphabetPage() {
         <p className="ab-swipe-note">
           Swipe to explore the previews <ArrowRight size={15} />
         </p>
-      </section>
-
-      <section id="offer" className="ab-offer-section" aria-labelledby="offer-title">
-        <div className="ab-wrap ab-offer">
-          <div className="ab-offer-gallery">
-            <p className="ab-eyebrow">YOUR NEXT LETTER LESSON STARTS HERE</p>
-            <h2 id="offer-title">
-              Your next activity.
-              <br />
-              <span>Ready when you are.</span>
-            </h2>
-            <div className="ab-offer-grid">
-              {[
-                "activity-sheets.webp",
-                "writing-strips.webp",
-                "trace-cards.webp",
-                "letter-puzzles.webp",
-              ].map((src, index) => (
-                <img
-                  key={src}
-                  src={media + src}
-                  alt={
-                    [
-                      "Letter activity sheets",
-                      "Writing practice strips",
-                      "Letter tracing cards",
-                      "Paper letter puzzles",
-                    ][index]
-                  }
-                  width="400"
-                  height="400"
-                  loading="lazy"
-                />
-              ))}
-            </div>
-            <p>Choose a focus. Print a page. Bring it to your next lesson.</p>
-          </div>
-          <div className="ab-order-card">
-            <span className="ab-order-label">
-              <Check size={15} /> YOUR LAUNCH PRICE
-            </span>
-            <h3>Alphabet Activity Bundle</h3>
-            <p>Digital printable activities for letter time.</p>
-            <ul>
-              {[
-                "Letter activity sheets & tracing cards",
-                "Read, trace & write practice",
-                "Colouring & letter puzzles",
-                "Matching & letter-finding activities",
-              ].map((text) => (
-                <li key={text}>
-                  <Check size={17} />
-                  {text}
-                </li>
-              ))}
-            </ul>
-            <div className="ab-price-reference">
-              Bundle reference value <s>{money(OFFER.referencePrice)}</s>
-            </div>
-            <div className="ab-price">
-              <strong>{money(OFFER.price)}</strong>
-              <span>
-                Canadian dollars
-                <br />
-                One payment
-              </span>
-            </div>
-            <div className="ab-launch-note">
-              <Check size={15} /> Launch price already applied. No code needed.
-            </div>
-            <a
-              className="ab-button ab-checkout-button"
-              href={checkoutUrl}
-              onClick={(event) => {
-                event.preventDefault();
-                beginCheckout();
-              }}
-            >
-              Get my activity bundle <ArrowRight size={18} />
-            </a>
-            <div className="ab-order-assurance">
-              <ShieldCheck size={16} />
-              <span>Checkout handled by Hotmart</span>
-            </div>
-            <p className="ab-small-note">
-              Digital resources only. Check the final price, taxes, licence and refund terms at
-              checkout.
-            </p>
-          </div>
-        </div>
-        {checkoutOpen && (
-          <div id="checkout" className="ab-checkout ab-wrap">
-            <div className="ab-checkout-heading">
-              <div>
-                <p className="ab-eyebrow">COMPLETE YOUR ORDER</p>
-                <h3>Your next activity is waiting.</h3>
-              </div>
-              <a
-                href={checkoutUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ab-text-link"
-              >
-                Open checkout in a new tab <ArrowUpRight size={16} />
-              </a>
-            </div>
-            <iframe
-              ref={checkoutFrame}
-              title="Secure Hotmart checkout"
-              src={checkoutUrl}
-              allow="payment *; clipboard-write"
-              referrerPolicy="strict-origin-when-cross-origin"
-            />
-            <p>Confirm the total and currency shown by Hotmart before paying.</p>
-          </div>
-        )}
       </section>
 
       <section className="ab-section ab-wrap ab-sample-section" aria-labelledby="sample-title">

@@ -14,9 +14,9 @@ node --test tests/meta-capi.test.mjs
 
 ## Offer and checkout
 
-The landing page presents the benefit, teaching workflow and deliverables before the first offer action in section four. Interactive activity previews, three locally hosted videos, sample enlargements and FAQ explain the product. Every sales action outside the offer links to `#offer`. Only the offer's checkout action mounts Hotmart; its native link also works before JavaScript hydration. No timed coupon popup or hidden price gate interrupts reading.
+The single-product storefront opens with real product photos, a selectable video preview, product details, the CAD price and a purchase action. Desktop uses two columns; mobile places the gallery above the product information. Interactive activity previews, three locally hosted videos, sample enlargements and FAQ explain the product. Every sales action outside the offer links to `#offer`. Only the offer's checkout action mounts Hotmart; its native link also works before JavaScript hydration. No timed coupon popup or hidden price gate interrupts reading.
 
-Offer settings are in `src/lib/offer.ts`. CAD 35 is labelled as a bundle reference value, not a historical selling price. The launch price is CAD 14.90 and is visible in the offer without a coupon code. The supplied Hotmart checkout was observed showing that base price for Canada before GST. Hotmart controls final totals, taxes, access and refund terms.
+Offer settings are in `src/lib/offer.ts`. The configured CAD 35 reference value is not displayed as a previous selling price. The launch price is CAD 14.90 and is visible in the offer without a coupon code. The supplied Hotmart checkout was observed showing that base price for Canada before GST. Hotmart controls final totals, taxes, access and refund terms.
 
 UTMify loads once using the owner-supplied configuration. Recognised campaign parameters are passed into the embedded checkout. Advertising policy, opt-out choices, regional consent and server CAPI configuration are described in `docs/meta-measurement.md`. No Purchase event is inferred from a click or iframe load.
 
