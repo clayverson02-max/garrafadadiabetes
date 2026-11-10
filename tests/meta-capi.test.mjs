@@ -45,9 +45,8 @@ await fs.writeFile(
     })
     .outputText.replace('from "./offer"', 'from "./offer.mjs"'),
 );
-const { createEventId, hasMarketingPermission } = await import(
-  pathToFileURL(path.join(tmp, "marketing.mjs")).href
-);
+const { createEventId, hasMarketingPermission, startNoticeMeasurement, setMarketingConsent } =
+  await import(pathToFileURL(path.join(tmp, "marketing.mjs")).href);
 const event = {
   event_name: "ViewContent",
   event_id: "a3d8166f-6630-4e52-88f6-a45396008870",
@@ -263,6 +262,71 @@ test("browser honours explicit opt-out, privacy signals and region changes", () 
     for (const [name, descriptor] of Object.entries(previous)) {
       if (descriptor) Object.defineProperty(globalThis, name, descriptor);
       else delete globalThis[name];
+    }
+  }
+});
+
+test("notice regions automatically send one deduplicated pair of page events without accepting a panel", () => {
+  const keys = ["window", "document", "navigator", "location", "fetch"];
+  const previous = Object.fromEntries(
+    keys.map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]),
+  );
+  try {
+    for (const scenario of [
+      { mode: "notice", cookie: "", sends: true },
+      { mode: "notice", cookie: "alphabet_marketing=notice", sends: true },
+      { mode: "consent", cookie: "", sends: false },
+      { mode: "consent", cookie: "alphabet_marketing=notice", sends: false },
+      { mode: "notice", cookie: "alphabet_marketing=deny", sends: false },
+      { mode: "notice", cookie: "", gpc: true, sends: false },
+      { mode: "notice", cookie: "", dnt: "1", sends: false },
+    ]) {
+      const calls = [];
+      const scripts = [];
+      const browser = { alphabetAdvertisingPolicy: { mode: scenario.mode } };
+      const values = {
+        window: browser,
+        document: {
+          cookie: scenario.cookie,
+          createElement: () => ({}),
+          head: { appendChild: (script) => scripts.push(script) },
+        },
+        navigator: { globalPrivacyControl: scenario.gpc ?? false, doNotTrack: scenario.dnt ?? "0" },
+        location: { origin: "https://example.test", pathname: "/", protocol: "https:" },
+        fetch: async (_url, init) => {
+          calls.push(JSON.parse(init.body));
+          return Response.json({ ok: true });
+        },
+      };
+      for (const [key, value] of Object.entries(values))
+        Object.defineProperty(globalThis, key, { value, configurable: true });
+      startNoticeMeasurement();
+      startNoticeMeasurement();
+      assert.equal(calls.length, scenario.sends ? 2 : 0);
+      assert.equal(scripts.length, scenario.sends ? 1 : 0);
+      if (scenario.sends) {
+        assert.deepEqual(
+          calls.map((call) => call.event_name),
+          ["PageView", "ViewContent"],
+        );
+        assert.ok(
+          calls.every((call) => call.privacy_mode === "notice" && call.consent === undefined),
+        );
+        assert.equal(new Set(calls.map((call) => call.event_id)).size, 2);
+        const pixelEvents = browser.fbq.queue.filter((call) => call[0] === "track");
+        assert.deepEqual(
+          pixelEvents.map((call) => call[3].eventID),
+          calls.map((call) => call.event_id),
+        );
+        setMarketingConsent(false);
+        startNoticeMeasurement();
+        assert.equal(calls.length, 2, "opting out must stop further events");
+      }
+    }
+  } finally {
+    for (const [key, descriptor] of Object.entries(previous)) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else delete globalThis[key];
     }
   }
 });

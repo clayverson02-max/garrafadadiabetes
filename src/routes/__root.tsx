@@ -133,7 +133,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         async: true,
         defer: true,
         "data-utmify-prevent-subids": "",
-      } as any,
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -162,8 +162,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
       <AdvertisingConsent />
+      <Outlet />
     </QueryClientProvider>
   );
 }
