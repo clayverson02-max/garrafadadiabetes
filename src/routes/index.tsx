@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
+import { AdvertisingConsent } from "../components/AdvertisingConsent";
 import { AlphabetProductGallery } from "../components/AlphabetProductGallery";
 import { AlphabetPreviewVideo } from "../components/AlphabetPreviewVideo";
 import { OFFER } from "../lib/offer";
@@ -622,9 +623,7 @@ function AlphabetPage() {
               complete phonics curriculum. Learning experiences vary. Artwork remains credited to
               its respective creators.
             </p>
-            <button onClick={() => window.dispatchEvent(new Event("alphabet-ad-preferences"))}>
-              Privacy & advertising preferences
-            </button>
+            <AdvertisingConsent />
             <small>© {new Date().getFullYear()} Alphabet Activity Bundle</small>
           </div>
         </div>

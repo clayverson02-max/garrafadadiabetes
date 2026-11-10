@@ -18,7 +18,7 @@ The single-product storefront opens with real product photos, a selectable video
 
 Offer settings are in `src/lib/offer.ts`. The configured CAD 35 reference value is not displayed as a previous selling price. The launch price is CAD 14.90 and is visible in the offer without a coupon code. The supplied Hotmart checkout was observed showing that base price for Canada before GST. Hotmart controls final totals, taxes, access and refund terms.
 
-UTMify loads once using the owner-supplied configuration. Recognised campaign parameters are passed into the embedded checkout. Advertising policy, opt-out choices, regional consent and server CAPI configuration are described in `docs/meta-measurement.md`. No Purchase event is inferred from a click or iframe load.
+UTMify loads once using the owner-supplied configuration. Recognised campaign parameters are passed into the embedded checkout. Privacy controls are contained in the footer, without automatic banners or overlays. Automatic notice-region measurement and explicit consent-region measurement are retained. Advertising policy, opt-out choices, regional consent and server CAPI configuration are described in `docs/meta-measurement.md`. No Purchase event is inferred from a click or iframe load.
 
 ## Branding and publication
 

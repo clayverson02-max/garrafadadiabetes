@@ -11,7 +11,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const require = createRequire(path.join(root, "package.json"));
 
 // Render the real storefront without a router, advertising requests or payment requests.
-export function loadStorefront(track = () => {}) {
+export function loadStorefront(track = () => {}, marketingOverrides = {}) {
   const cache = new Map();
   function load(file) {
     if (cache.has(file)) return cache.get(file).exports;
@@ -27,7 +27,7 @@ export function loadStorefront(track = () => {}) {
     const localRequire = (name) => {
       if (name === "@tanstack/react-router") return { createFileRoute: () => (options) => options };
       if (name.endsWith(".css")) return {};
-      if (name.endsWith("/marketing")) return { trackMarketing: track };
+      if (name.endsWith("/marketing")) return { trackMarketing: track, ...marketingOverrides };
       if (!name.startsWith(".")) return require(name);
       const base = path.resolve(path.dirname(file), name);
       const resolved = [base, base + ".tsx", base + ".ts"].find((item) => fs.existsSync(item));
@@ -68,4 +68,15 @@ test("every rendered product asset exists and all three demonstration videos rem
   for (const asset of assets) assert.ok(fs.existsSync(path.join(root, "public", asset)), asset);
   for (const id of ["writing-demo", "alphabet-pages-preview", "letter-formation-preview"])
     assert.ok(html.includes(`/alphabet/${id}.mp4`));
+});
+
+test("advertising choices render only in the footer without an open banner", () => {
+  const footer = html.indexOf("<footer");
+  const preferences = html.indexOf('class="ab-footer-privacy"');
+  assert.ok(preferences > footer && footer > html.indexOf('id="offer"'));
+  assert.doesNotMatch(html, /ab-measurement-notice|class="ab-privacy"/);
+  assert.match(html.slice(preferences), /<details>/);
+  assert.doesNotMatch(html.slice(preferences), /<details open/);
+  assert.match(html.slice(preferences), /Turn off measurement/);
+  assert.match(html.slice(preferences), /Allow measurement/);
 });

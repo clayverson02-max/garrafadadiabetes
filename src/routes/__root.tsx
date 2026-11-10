@@ -10,7 +10,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { AdvertisingConsent } from "../components/AdvertisingConsent";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 const publicSiteUrl = "https://alphabetactivity.lovable.app";
@@ -162,7 +161,6 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <AdvertisingConsent />
       <Outlet />
     </QueryClientProvider>
   );

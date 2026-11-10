@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   initialiseMarketing,
   marketingChoice,
@@ -8,8 +8,9 @@ import {
 } from "../lib/marketing";
 import type { AdvertisingPolicy } from "../lib/advertising-policy";
 
+/** Inline footer preferences: never covers the product or opens itself. */
 export function AdvertisingConsent() {
-  const [open, setOpen] = useState(false);
+  const details = useRef<HTMLDetailsElement>(null);
   const [mode, setMode] = useState<AdvertisingPolicy["mode"] | null>(null);
   const [choice, setChoice] = useState<MarketingChoice>(null);
   useEffect(() => {
@@ -18,12 +19,14 @@ export function AdvertisingConsent() {
     setChoice(current);
     const reopen = () => {
       setChoice(marketingChoice());
-      setOpen(true);
+      if (details.current) {
+        details.current.open = true;
+        details.current.scrollIntoView({ block: "nearest" });
+      }
     };
     window.addEventListener("alphabet-ad-preferences", reopen);
     if (current === "allow") initialiseMarketing();
     const controller = new AbortController();
-    // Policy lookup never blocks shopping; allow time for a server cold start.
     const timer = window.setTimeout(() => controller.abort(), 8000);
     void fetch("/api/advertising-policy", { cache: "no-store", signal: controller.signal })
       .then(async (response) => {
@@ -39,7 +42,6 @@ export function AdvertisingConsent() {
         if (!mounted) return;
         window.alphabetAdvertisingPolicy = policy;
         setMode(policy.mode);
-        if (current !== "allow" && current !== "deny") setOpen(policy.mode === "consent");
       });
     return () => {
       mounted = false;
@@ -48,67 +50,42 @@ export function AdvertisingConsent() {
       window.removeEventListener("alphabet-ad-preferences", reopen);
     };
   }, []);
-  // The inline notice renders before this effect starts automatic measurement.
+  // The footer disclosure exists before notice-region measurement can start.
   useEffect(() => {
     if (mode === "notice" && choice !== "deny" && choice !== "allow") startNoticeMeasurement();
   }, [mode, choice]);
   const choose = (enabled: boolean) => {
     const allowed = setMarketingConsent(enabled);
     setChoice(allowed ? "allow" : "deny");
-    setOpen(false);
   };
   return (
-    <>
-      {mode === "notice" && (
-        <aside className="ab-measurement-notice" aria-label="Advertising measurement notice">
-          <p>
-            {choice === "deny"
-              ? "Advertising measurement is off."
-              : "We use Meta to measure visits, checkout clicks and video views."}
-          </p>
-          <div>
-            {choice !== "deny" && (
-              <button type="button" onClick={() => choose(false)}>
-                Turn off measurement
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => {
-                setChoice(marketingChoice());
-                setOpen(true);
-              }}
-            >
-              {choice === "deny" ? "Preferences" : "Details"}
-            </button>
-          </div>
-        </aside>
-      )}
-      {open && (
-        <section className="ab-privacy" aria-label="Privacy and advertising preferences">
-          <h2>Privacy & advertising</h2>
-          <p>
-            {mode === "notice" && choice !== "deny"
-              ? "We use Meta to measure visits, checkout clicks and video viewing, using browser identifiers and connection information. You can turn this off below or in the footer."
-              : "With your permission, we share visits, checkout clicks, video viewing, browser identifiers and connection information with Meta to measure our advertising. Your choice does not affect access to this page."}
-          </p>
-          <div className="ab-privacy-actions">
-            <button onClick={() => choose(false)}>Turn off advertising measurement</button>
-            {mode === "notice" && choice !== "deny" ? (
-              <button
-                onClick={() => {
-                  setChoice(marketingChoice());
-                  setOpen(false);
-                }}
-              >
-                Close notice
-              </button>
-            ) : (
-              <button onClick={() => choose(true)}>Allow advertising measurement</button>
-            )}
-          </div>
-        </section>
-      )}
-    </>
+    <div className="ab-footer-privacy">
+      <p>We use Meta for optional advertising measurement. You can manage your choice below.</p>
+      <details ref={details}>
+        <summary>Privacy & advertising preferences</summary>
+        <p>
+          Advertising measurement shares visits, checkout clicks and video views with Meta, using
+          browser identifiers and connection information. Your choice does not affect access to the
+          activities or checkout.
+        </p>
+        <p role="status">
+          {choice === "deny"
+            ? "Advertising measurement is off."
+            : choice === "allow"
+              ? "Advertising measurement is allowed."
+              : mode === "notice"
+                ? "Advertising measurement starts automatically in your region. You can turn it off."
+                : "Advertising measurement stays off until you allow it."}
+        </p>
+        <div className="ab-footer-privacy-actions">
+          <button type="button" onClick={() => choose(false)}>
+            Turn off measurement
+          </button>
+          <button type="button" onClick={() => choose(true)}>
+            Allow measurement
+          </button>
+        </div>
+      </details>
+    </div>
   );
 }
