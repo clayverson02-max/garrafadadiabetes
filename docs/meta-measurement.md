@@ -6,7 +6,9 @@ Public pixel: `1670040038036599`. Public domain: `https://alphabetactivity.lovab
 
 Browser and server share the same event name and UUID for deduplication. Supported events are PageView, ViewContent, InitiateCheckout and the custom VideoProgress event. Video progress is emitted at 25, 50, 75 and completion once per video and milestone in the page session. Only the three approved video identifiers and those four percentages are accepted by the server. Video events do not attach a purchase value.
 
-InitiateCheckout is emitted only when the visitor activates the offer's actual checkout action. Links elsewhere in the page point to the offer rather than directly to payment. The ecommerce product block starts with a photo and video gallery beside the price and actual checkout action. On mobile the gallery appears above product details and purchase. The embedded checkout mounts directly below that block only after activation, so its network requests do not delay the initial product view. The offer link retains a native payment URL so a visitor can still proceed if client JavaScript has not hydrated; after hydration it opens the embedded checkout. No purchase is reported from a click, video view or iframe load. Completed purchases require independently verified Hotmart order integration.
+The product gallery and price precede a permanently visible payment area. The official Hotmart Checkout Elements inline form mounts automatically after hydration, without an activation click. Public offer key `1p0sqjk3` was verified against the supplied checkout's public data. Hotmart manages the payment messages and frame height. Widget failures or a 15-second timeout select the original full checkout iframe; a noscript iframe is also available. The main CTA is a native `#checkout` anchor. Campaign parameters are selected from the router URL on server and client and passed into the widget at first mount, without replacing the form during hydration.
+
+InitiateCheckout is emitted once when the visitor activates the checkout anchor or its optional fallback link. Simply rendering, scrolling to or loading the form does not emit InitiateCheckout or Purchase. The parent page does not inspect typing in Hotmart's cross-origin fields. Native checkout activity requires Hotmart's own configured integration. Completed purchases require independently verified order integration.
 
 ## Advertising preferences
 
@@ -28,4 +30,4 @@ The supplied Hotmart checkout was observed showing CAD 14.90 before applicable G
 
 ## Validation
 
-`node --test tests/meta-capi.test.mjs`, `npx tsc --noEmit`, `npm run build`.
+`node --test tests/*.test.mjs`, `npx tsc --noEmit`, `npm run build`.

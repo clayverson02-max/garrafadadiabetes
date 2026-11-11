@@ -4,6 +4,8 @@ export const OFFER = {
   price: 14.9,
   referencePrice: 35,
   currency: "CAD",
+  // Public offer key verified against the supplied Hotmart checkout.
+  checkoutOfferCode: "1p0sqjk3",
   checkoutUrl: "https://pay.hotmart.com/W108399942O?checkoutMode=10",
 };
 export const META_PIXEL_ID = "1670040038036599";

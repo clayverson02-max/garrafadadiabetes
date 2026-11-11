@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { createFileRoute, useLocation } from "@tanstack/react-router";
+import { useRef, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -13,10 +13,12 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
+import { HotmartInlineCheckout } from "../components/HotmartInlineCheckout";
 import { AdvertisingConsent } from "../components/AdvertisingConsent";
 import { AlphabetProductGallery } from "../components/AlphabetProductGallery";
 import { AlphabetPreviewVideo } from "../components/AlphabetPreviewVideo";
 import { OFFER } from "../lib/offer";
+import { checkoutUrlForSearch } from "../lib/checkout-url";
 import { trackMarketing } from "../lib/marketing";
 import "./alphabet.css";
 
@@ -127,37 +129,24 @@ function AlphabetPage() {
     alt: "Letter formation sample",
   });
   const dialog = useRef<HTMLDialogElement>(null);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [checkoutUrl, setCheckoutUrl] = useState(OFFER.checkoutUrl);
+  const search = useLocation({ select: (location) => location.searchStr });
+  const checkoutUrl = checkoutUrlForSearch(search);
   const checkoutTracked = useRef(false);
   const videoMilestones = useRef(new Set<string>());
   const activity = activities[selected];
-
-  useEffect(() => {
-    const url = new URL(OFFER.checkoutUrl);
-    new URLSearchParams(window.location.search).forEach((value, key) => {
-      if (
-        /^utm_(source|medium|campaign|content|term|id)$/.test(key) ||
-        ["src", "sck", "fbclid"].includes(key)
-      )
-        url.searchParams.set(key, value);
-    });
-    setCheckoutUrl(url.href);
-  }, []);
 
   const openSample = (src: string, alt: string) => {
     setLightbox({ src, alt });
     dialog.current?.showModal();
   };
-  const beginCheckout = () => {
-    setCheckoutOpen(true);
+  const recordCheckout = () => {
     if (!checkoutTracked.current) {
       trackMarketing("InitiateCheckout");
       checkoutTracked.current = true;
     }
-    if (checkoutOpen) scrollToCheckout();
   };
-  const scrollToCheckout = () => {
+  const beginCheckout = () => {
+    recordCheckout();
     document.getElementById("checkout")?.scrollIntoView({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "instant"
@@ -165,9 +154,6 @@ function AlphabetPage() {
       block: "start",
     });
   };
-  useEffect(() => {
-    if (checkoutOpen) scrollToCheckout();
-  }, [checkoutOpen]);
 
   const trackVideo = (element: HTMLVideoElement, id: (typeof videos)[number]["id"]) => {
     if (!Number.isFinite(element.duration) || element.duration <= 0) return;
@@ -241,16 +227,15 @@ function AlphabetPage() {
           </div>
           <a
             className="ab-button ab-checkout-button"
-            href={checkoutUrl}
-            aria-expanded={checkoutOpen}
-            aria-controls={checkoutOpen ? "checkout" : undefined}
+            href="#checkout"
+            aria-controls="checkout"
             onClick={(event) => {
               if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
               event.preventDefault();
               beginCheckout();
             }}
           >
-            {checkoutOpen ? "Continue to checkout" : "Get my activity bundle"}
+            Complete my order below
             <ArrowRight size={18} />
           </a>
           <p className="ab-product-payment">
@@ -284,31 +269,37 @@ function AlphabetPage() {
           </a>
         </div>
       </section>
-      {checkoutOpen && (
-        <div id="checkout" className="ab-checkout ab-wrap">
-          <div className="ab-checkout-heading">
-            <div>
-              <p className="ab-eyebrow">COMPLETE YOUR ORDER</p>
-              <h3>Your next activity is waiting.</h3>
-            </div>
+      <section id="checkout" className="ab-checkout ab-wrap" aria-labelledby="checkout-title">
+        <div className="ab-checkout-heading">
+          <div>
+            <p className="ab-eyebrow">
+              <ShieldCheck size={16} /> PAYMENT BY HOTMART
+            </p>
+            <h2 id="checkout-title">Complete your order here.</h2>
+            <p>Enter your details and choose your payment method below.</p>
+          </div>
+          <span className="ab-checkout-digital">
+            <Download size={16} /> Digital download
+          </span>
+        </div>
+        <HotmartInlineCheckout checkoutUrl={checkoutUrl} />
+        <div className="ab-checkout-help">
+          <p>Confirm the total and currency shown by Hotmart before paying.</p>
+          <details>
+            <summary>Payment form not loading?</summary>
+            <p>You can also complete your order on Hotmart.</p>
             <a
               href={checkoutUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="ab-text-link"
+              onClick={recordCheckout}
             >
-              Open checkout in a new tab <ArrowUpRight size={16} />
+              Open secure checkout <ArrowUpRight size={15} />
             </a>
-          </div>
-          <iframe
-            title="Secure Hotmart checkout"
-            src={checkoutUrl}
-            allow="payment *; clipboard-write"
-            referrerPolicy="strict-origin-when-cross-origin"
-          />
-          <p>Confirm the total and currency shown by Hotmart before paying.</p>
+          </details>
         </div>
-      )}
+      </section>
       <div className="ab-trust-row ab-wrap">
         <span>
           <Download size={18} /> Digital materials

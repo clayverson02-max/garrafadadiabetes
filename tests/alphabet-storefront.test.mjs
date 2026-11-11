@@ -11,7 +11,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const require = createRequire(path.join(root, "package.json"));
 
 // Render the real storefront without a router, advertising requests or payment requests.
-export function loadStorefront(track = () => {}, marketingOverrides = {}) {
+export function loadStorefront(track = () => {}, marketingOverrides = {}, search = "") {
   const cache = new Map();
   function load(file) {
     if (cache.has(file)) return cache.get(file).exports;
@@ -25,7 +25,11 @@ export function loadStorefront(track = () => {}, marketingOverrides = {}) {
       },
     }).outputText;
     const localRequire = (name) => {
-      if (name === "@tanstack/react-router") return { createFileRoute: () => (options) => options };
+      if (name === "@tanstack/react-router")
+        return {
+          createFileRoute: () => (options) => options,
+          useLocation: ({ select }) => select({ searchStr: search }),
+        };
       if (name.endsWith(".css")) return {};
       if (name.endsWith("/marketing")) return { trackMarketing: track, ...marketingOverrides };
       if (!name.startsWith(".")) return require(name);
@@ -48,11 +52,14 @@ test("server-rendered product offer precedes details and retains a working payme
   assert.match(html, /CAD\s*14\.90/);
   assert.match(html, /Canadian dollars/);
   assert.match(html, /href="https:\/\/pay\.hotmart\.com\/W108399942O\?checkoutMode=10"/);
-  assert.doesNotMatch(html, /<iframe/);
+  assert.match(html, /href="#checkout"/);
+  assert.ok(html.indexOf('id="checkout"') < html.indexOf('id="what-you-get"'));
+  assert.match(html, /class="ab-inline-checkout"/);
+  assert.match(html, /<noscript><iframe/);
   assert.doesNotMatch(html, /<s>|countdown|last chance/i);
 });
 
-test("gallery has four selectable photos and a video without loading a payment frame", () => {
+test("gallery retains four selectable photos and a video alongside the embedded offer", () => {
   assert.match(html, /aria-label="Choose a product preview"/);
   assert.equal((html.match(/aria-controls="product-preview"/g) || []).length, 5);
   assert.match(html, /aria-label="Watch a preview"/);
@@ -79,4 +86,24 @@ test("advertising choices render only in the footer without an open banner", () 
   assert.doesNotMatch(html.slice(preferences), /<details open/);
   assert.match(html.slice(preferences), /Turn off measurement/);
   assert.match(html.slice(preferences), /Allow measurement/);
+});
+
+test("embedded checkout receives only recognised campaign data on the first server render", () => {
+  const SearchPage = loadStorefront(
+    () => {},
+    {},
+    "?utm_source=meta&utm_campaign=lesson&sck=teacher&fbclid=click&email=private&off=wrong",
+  );
+  const rendered = renderToStaticMarkup(React.createElement(SearchPage));
+  const match = rendered.match(/<noscript><iframe[^>]+src="([^"]+)"/);
+  assert.ok(match);
+  const url = new URL(match[1].replaceAll("&amp;", "&"));
+  assert.equal(url.hostname, "pay.hotmart.com");
+  assert.equal(url.pathname, "/W108399942O");
+  assert.equal(url.searchParams.get("checkoutMode"), "10");
+  assert.equal(url.searchParams.get("utm_campaign"), "lesson");
+  assert.equal(url.searchParams.get("sck"), "teacher");
+  assert.equal(url.searchParams.get("fbclid"), "click");
+  assert.equal(url.searchParams.has("email"), false);
+  assert.equal(url.searchParams.has("off"), false);
 });

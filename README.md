@@ -9,12 +9,12 @@ npm install
 npm run dev
 npx tsc --noEmit
 npm run build
-node --test tests/meta-capi.test.mjs
+node --test tests/*.test.mjs
 ```
 
 ## Offer and checkout
 
-The single-product storefront opens with real product photos, a selectable video preview, product details, the CAD price and a purchase action. Desktop uses two columns; mobile places the gallery above the product information. Interactive activity previews, three locally hosted videos, sample enlargements and FAQ explain the product. Every sales action outside the offer links to `#offer`. Only the offer's checkout action mounts Hotmart; its native link also works before JavaScript hydration. No timed coupon popup or hidden price gate interrupts reading.
+The single-product storefront opens with real product photos, a selectable video preview, product details, the CAD price and a purchase action. Desktop uses two columns; mobile places the gallery above the product information. Interactive activity previews, three locally hosted videos, sample enlargements and FAQ explain the product. Every sales action outside the offer links to `#offer`. The payment area is directly below the product and automatically mounts the official Hotmart Checkout Elements inline form after hydration. The purchase action scrolls to the form. A direct iframe is used if the widget fails or times out; a noscript iframe supports browsers without JavaScript. The external checkout link is an optional troubleshooting fallback. Campaign parameters come from the router URL on the server and client, avoiding a hydration reset. No timed coupon popup or hidden price gate interrupts reading.
 
 Offer settings are in `src/lib/offer.ts`. The configured CAD 35 reference value is not displayed as a previous selling price. The launch price is CAD 14.90 and is visible in the offer without a coupon code. The supplied Hotmart checkout was observed showing that base price for Canada before GST. Hotmart controls final totals, taxes, access and refund terms.
 
