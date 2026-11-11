@@ -83,7 +83,7 @@ test("forwards the shared event ID and server-controlled price without putting t
       assert.equal(sent.event_name, "ViewContent");
       assert.equal(sent.event_source_url, "https://example.test/");
       assert.equal(sent.custom_data.currency, "CAD");
-      assert.equal(sent.custom_data.value, 14.9);
+      assert.equal(sent.custom_data.value, 9.99);
       assert.ok(!("external_id" in sent.user_data));
       return Response.json({ events_received: 1 });
     },

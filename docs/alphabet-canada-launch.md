@@ -29,14 +29,14 @@ Make your next alphabet lesson easier to prepare. Explore printable tracing, wri
 ## Setup decisions — internal, do not paste into public description
 
 - First market: Canada; website and advertising copy: Canadian English.
-- Price selected by the creator: CAD 14.90, one-time payment.
+- Price selected by the creator: CAD 9.99, one-time payment.
 - Working product name: Alphabet Activity Bundle — Printable Letter Activities.
 - Configure the exact delivery method and refund period in Hotmart; the draft page does not claim an unconfirmed number of refund days.
 - Use the new product’s payment link only. The previous diabetes offer must not be reused.
 - The creator confirmed commercial licensing of the supplied photos/materials. Retain all required creator credits and observe the licence’s redistribution and advertising terms.
 - The repository contains 10 product photos and 4 videos, not the final printable PDF inventory. Check the actual deliverable files, quantity, printing formats, permitted uses and language variants before launch. Counts, official curriculum alignment, reviews and learning results are not claimed.
 - Photos retain original printed wording, including some US spellings. The site copy is Canadian English; this does not mean every source worksheet has been localised.
-- For later campaigns, present GBP to UK buyers and AUD to Australian buyers after checking the payment flow. Do not relabel CAD 14.90 as the same numerical amount in another currency.
+- For later campaigns, present GBP to UK buyers and AUD to Australian buyers after checking the payment flow. Do not relabel CAD 9.99 as the same numerical amount in another currency.
 
 ## Two ad scripts — narration
 

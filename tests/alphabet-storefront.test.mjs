@@ -49,7 +49,7 @@ const html = renderToStaticMarkup(React.createElement(Page));
 
 test("server-rendered product offer precedes details and retains a working payment link", () => {
   assert.ok(html.indexOf('id="offer"') < html.indexOf('id="what-you-get"'));
-  assert.match(html, /CAD\s*14\.90/);
+  assert.match(html, /CAD\s*9\.99/);
   assert.match(html, /Canadian dollars/);
   assert.match(html, /href="https:\/\/pay\.hotmart\.com\/W108399942O\?checkoutMode=10"/);
   assert.match(html, /href="#checkout"/);

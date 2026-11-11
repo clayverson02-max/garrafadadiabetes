@@ -1,7 +1,7 @@
 export const OFFER = {
   id: "alphabet-activity-bundle",
   name: "Alphabet Activity Bundle",
-  price: 14.9,
+  price: 9.99,
   referencePrice: 35,
   currency: "CAD",
   // Public offer key verified against the supplied Hotmart checkout.
