@@ -318,3 +318,32 @@
   .ab-checkout-heading, .ab-checkout-help { padding-inline: 12px; }
   .ab-checkout iframe { border-inline: 0; border-radius: 0; }
 }
+
+/* Customer feedback uses actual individual ratings, without a fabricated total. */
+.ab-product-feedback-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; color: var(--green) !important; font-size: 13px; text-decoration: underline !important; text-underline-offset: 3px; }
+.ab-reviews { padding-top: 12px; }
+.ab-reviews-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; margin-bottom: 26px; }
+.ab-reviews-heading h2 { margin-top: 12px; max-width: 610px; }
+.ab-reviews-intro { color: var(--muted); font-size: 14px; margin-top: 14px !important; }
+.ab-review-sort { display: grid; gap: 7px; color: var(--ink); font-size: 13px; font-weight: 600; min-width: 200px; }
+.ab-review-sort select { display: block; width: 100%; min-height: 44px; border: 1px solid #8ca396; border-radius: 7px; padding: 10px 32px 10px 12px; background: #fff; color: var(--ink); font: 14px/1.5 Arial, Helvetica, sans-serif; cursor: pointer; }
+.ab-review-sort select:focus-visible { outline: 3px solid #9c6700; outline-offset: 3px; }
+.ab-review-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; padding: 0; margin: 0; list-style: none; }
+.ab-review-list > li { min-width: 0; }
+.ab-review-card { height: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 24px; background: #fff; }
+.ab-review-card header { display: flex; align-items: center; gap: 13px; margin-bottom: 17px; }
+.ab-review-avatar { display: grid; place-items: center; width: 48px; height: 48px; flex-shrink: 0; background: #edf3e7; color: var(--green); border-radius: 50%; font-size: 15px; font-weight: 700; }
+.ab-review-stars { display: inline-flex; gap: 3px; color: #ab7000; vertical-align: middle; }
+.ab-review-name { font-size: 15px; font-weight: 700; margin-top: 5px !important; overflow-wrap: anywhere; }
+.ab-review-card h3 { font-size: 18px; line-height: 1.4; margin-bottom: 9px; letter-spacing: -.2px; }
+.ab-review-card blockquote { margin: 0; }
+.ab-review-card blockquote p { font-size: 16px; line-height: 1.7; color: #34483f; overflow-wrap: anywhere; }
+.ab-review-note { color: var(--muted); font-size: 12px; margin-top: 18px !important; }
+@media (max-width: 700px) {
+  .ab-reviews { padding-top: 0; }
+  .ab-reviews-heading { align-items: stretch; flex-direction: column; gap: 20px; }
+  .ab-review-sort { max-width: 100%; }
+  .ab-review-list { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .ab-review-card { padding: 21px; }
+  .ab-review-card h3 { font-size: 17px; }
+}

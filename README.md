@@ -24,6 +24,10 @@ UTMify loads once using the owner-supplied configuration. Recognised campaign pa
 
 Page title, description, favicon, touch icon and social preview artwork are configured in `src/routes/__root.tsx` and `public/alphabet/`. The public Lovable subdomain is a hosting setting; editing this repository does not rename it. The connected project is `3d3072d7-9ecf-421e-b096-e2e1293daab4`. The current published address is `https://alphabetactivity.lovable.app`. The canonical and social image URLs now use `https://alphabetactivity.lovable.app`.
 
-The uploaded feedback screenshots mention multiplication and maths resources, so they are not displayed as testimonials for this alphabet bundle. Actual sample pages remain visible as product evidence.
+Feedback about multiplication and maths resources is excluded from this alphabet listing. Actual activity samples and selected seller-supplied customer feedback provide product evidence.
 
 Never commit API access tokens or other secrets. Configure server-only secrets in the hosting environment. Previously committed credentials should be revoked because removing current source files does not erase Git history.
+
+## Customer feedback
+
+Selected customer reviews supplied and confirmed by the seller are translated into English in `src/lib/customer-reviews.ts` and displayed by `CustomerReviews`. Individual ratings are retained. Source limitations and selection are documented in `docs/customer-reviews.md`. No aggregate review total, verified-purchase badge or fabricated dates are shown.

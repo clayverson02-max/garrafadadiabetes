@@ -107,3 +107,21 @@ test("embedded checkout receives only recognised campaign data on the first serv
   assert.equal(url.searchParams.has("email"), false);
   assert.equal(url.searchParams.has("off"), false);
 });
+
+test("customer feedback preserves individual ratings without inventing a total or verified badges", () => {
+  const start = html.indexOf('id="customer-reviews"');
+  const end = html.indexOf('aria-labelledby="faq-title"', start);
+  assert.ok(start > html.indexOf('id="checkout"') && end > start);
+  const section = html.slice(start, end);
+  assert.equal((section.match(/data-review-id=/g) || []).length, 6);
+  assert.equal((section.match(/data-rating="4"/g) || []).length, 1);
+  assert.match(section, /Kimberly Richards/);
+  assert.match(section, /Amy Cowen/);
+  assert.match(section, /I haven’t used this resource yet/);
+  assert.match(section, /Translated into English/);
+  assert.doesNotMatch(
+    section,
+    /Verified|1,?363|Most recent|Most helpful|Science of Reading|Amanda M/,
+  );
+  assert.match(html, /href="#customer-reviews"/);
+});

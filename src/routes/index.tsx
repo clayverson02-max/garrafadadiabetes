@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
+import { CustomerReviews } from "../components/CustomerReviews";
 import { HotmartInlineCheckout } from "../components/HotmartInlineCheckout";
 import { AdvertisingConsent } from "../components/AdvertisingConsent";
 import { AlphabetProductGallery } from "../components/AlphabetProductGallery";
@@ -213,6 +214,9 @@ function AlphabetPage() {
             Your next letter lesson, already on the page. Printable tracing, writing, colouring and
             puzzles to choose from.
           </p>
+          <a className="ab-product-feedback-link" href="#customer-reviews">
+            Read customer feedback <ArrowUpRight size={14} />
+          </a>
           <div className="ab-product-badges">
             <span>
               <Download size={14} /> Digital download
@@ -566,6 +570,8 @@ function AlphabetPage() {
           ))}
         </div>
       </section>
+
+      <CustomerReviews />
 
       <section className="ab-wrap ab-faq" aria-labelledby="faq-title">
         <div>
