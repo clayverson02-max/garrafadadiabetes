@@ -1,5 +1,5 @@
 import { createFileRoute, useLocation } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -146,9 +146,14 @@ function AlphabetPage() {
       checkoutTracked.current = true;
     }
   };
-  const beginCheckout = () => {
+  const beginCheckout = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const checkout = document.getElementById("checkout");
+    if (!checkout) return;
+    event.preventDefault();
     recordCheckout();
-    document.getElementById("checkout")?.scrollIntoView({
+    checkout.focus({ preventScroll: true });
+    checkout.scrollIntoView({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "instant"
         : "smooth",
@@ -233,11 +238,7 @@ function AlphabetPage() {
             className="ab-button ab-checkout-button"
             href="#checkout"
             aria-controls="checkout"
-            onClick={(event) => {
-              if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-              event.preventDefault();
-              beginCheckout();
-            }}
+            onClick={beginCheckout}
           >
             Complete my order below
             <ArrowRight size={18} />
@@ -273,7 +274,7 @@ function AlphabetPage() {
           </a>
         </div>
       </section>
-      <section id="checkout" className="ab-checkout ab-wrap" aria-labelledby="checkout-title">
+      <section id="checkout" className="ab-checkout ab-wrap" aria-labelledby="checkout-title" tabIndex={-1}>
         <div className="ab-checkout-heading">
           <div>
             <p className="ab-eyebrow">
@@ -494,8 +495,8 @@ function AlphabetPage() {
         </div>
         <div className="ab-section-action">
           <p>Found a way to use these in your next lesson?</p>
-          <a className="ab-button" href="#offer">
-            See the bundle offer <ArrowRight size={18} />
+          <a className="ab-button" href="#checkout" onClick={beginCheckout}>
+            Get the bundle <ArrowRight size={18} />
           </a>
         </div>
       </section>
@@ -581,8 +582,8 @@ function AlphabetPage() {
             <br />
             answers.
           </h2>
-          <a className="ab-text-link" href="#offer">
-            Back to the bundle <ArrowUpRight size={16} />
+          <a className="ab-text-link" href="#checkout" onClick={beginCheckout}>
+            Go to checkout <ArrowUpRight size={16} />
           </a>
         </div>
         <div>
