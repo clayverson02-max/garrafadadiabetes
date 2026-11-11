@@ -98,11 +98,15 @@ const videos = [
 const faqs = [
   [
     "What exactly am I buying?",
-    "A digital bundle of printable alphabet activities, including letter sheets, tracing cards, writing practice, colouring, matching and letter puzzles. Photos show examples; pens, toys, printed books and other physical supplies are not included.",
+    "A visual alphabet kit with pages you can print and turn into tracing cards, writing strips, matching games and paper puzzles. Your order is delivered online. You print and prepare the hands-on activities yourself.",
   ],
   [
     "How do I receive the materials?",
     "After Hotmart approves your payment, follow the access instructions sent to the email address you entered at checkout. You will need a device to open the materials and access to a printer.",
+  ],
+  [
+    "How do I make the cards and activities?",
+    "Choose a page and print it on paper. For cards you want to use again, try cardstock if your printer supports it. Cut around the card or puzzle outlines, then sort the pieces by letter. Leave tracing, writing and colouring pages whole.",
   ],
   [
     "Who can use these activities?",
@@ -178,8 +182,8 @@ function AlphabetPage() {
     <main className="ab-page">
       <div className="ab-announcement">
         <Download size={14} />
-        <span>Digital activities. Download and print.</span>
-        <span className="ab-announcement-extra">Digital download. No shipping.</span>
+        <span>Make your own hands-on alphabet kit.</span>
+        <span className="ab-announcement-extra">Print at home or school.</span>
       </div>
       <header className="ab-header ab-wrap">
         <a href="#top" className="ab-brand" aria-label="Alphabet Activity Bundle home">
@@ -194,14 +198,12 @@ function AlphabetPage() {
           </span>
         </a>
         <span className="ab-header-note">
-          Ready for your next lesson.
-          <br />
-          Digital files, no shipping.
+          Letter cards, games and activities.
         </span>
       </header>
 
       <div id="top" className="ab-product-breadcrumb ab-wrap">
-        Digital resources <span aria-hidden="true">/</span> Alphabet activities
+        Early learning <span aria-hidden="true">/</span> Alphabet activities
       </div>
       <section id="offer" className="ab-product ab-wrap" aria-labelledby="product-title">
         <AlphabetProductGallery
@@ -209,22 +211,22 @@ function AlphabetPage() {
           onVideoProgress={(element) => trackVideo(element, "writing-demo")}
         />
         <div className="ab-product-info">
-          <p className="ab-eyebrow">LESS PREP. MORE LETTER PRACTICE.</p>
+          <p className="ab-eyebrow">PRINT, CUT AND MAKE</p>
           <h1 id="product-title">
             Alphabet
             <br />
             Activity Bundle
           </h1>
           <p className="ab-product-description">
-            Your next letter lesson, already on the page. Printable tracing, writing, colouring and
-            puzzles to choose from.
+            Turn visual templates into alphabet cards, matching games and paper puzzles. Print the
+            pages you need, cut out the pieces and set up hands-on activities for home or school.
           </p>
           <a className="ab-product-feedback-link" href="#customer-reviews">
             Read customer feedback <ArrowUpRight size={14} />
           </a>
           <div className="ab-product-badges">
             <span>
-              <Download size={14} /> Digital download
+              <Download size={14} /> Visual templates
             </span>
             <span>
               <Printer size={14} /> Print at home or school
@@ -260,10 +262,9 @@ function AlphabetPage() {
           <div className="ab-product-delivery">
             <Download size={20} />
             <p>
-              <strong>Digital files. No shipping.</strong>
+              <strong>Make your own alphabet kit.</strong>
               <br />
-              Access instructions arrive by email after payment approval. Printed books and
-              stationery are not included.
+              Get access by email after payment, then print and prepare the activities you choose.
             </p>
           </div>
           <p className="ab-small-note">
@@ -307,7 +308,7 @@ function AlphabetPage() {
       </section>
       <div className="ab-trust-row ab-wrap">
         <span>
-          <Download size={18} /> Digital materials
+          <Download size={18} /> Ready-to-use templates
         </span>
         <span>
           <Printer size={18} /> Print the pages you need
@@ -379,44 +380,43 @@ function AlphabetPage() {
           ))}
         </div>
         <p className="ab-deliverable-note">
-          <Download size={15} /> Digital materials to print. Pens, toys and printed books shown in
-          photos are not included.
+          <Printer size={15} /> The photos show what you can make from the templates.
         </p>
       </section>
       <section className="ab-prep-section">
         <div className="ab-wrap ab-prep">
           <div>
-            <p className="ab-eyebrow">YOUR PREP LIST IS LONG ENOUGH</p>
+            <p className="ab-eyebrow">HOW TO PREPARE YOUR KIT</p>
             <h2>
-              You don’t need to make
+              From printed page
               <br />
-              another worksheet tonight.
+              to hands-on activity.
             </h2>
             <p>
-              Start with a ready-made activity. Choose your focus, print your pages and make the
-              lesson your own.
+              Set out a tracing sheet, make a stack of letter cards or build a matching game from
+              the same kit.
             </p>
           </div>
           <ol>
             <li>
               <span>01</span>
               <div>
-                <h3>Choose the focus.</h3>
-                <p>Letter shapes, writing or a practical activity.</p>
+                <h3>Choose your activity.</h3>
+                <p>Pick a letter and choose a tracing sheet, a set of cards or a puzzle.</p>
               </div>
             </li>
             <li>
               <span>02</span>
               <div>
-                <h3>Print what you need.</h3>
-                <p>Prepare the pages and supplies for your task.</p>
+                <h3>Print the pages you need.</h3>
+                <p>Use regular paper for writing and colouring. Use cardstock for sturdier cards if your printer supports it.</p>
               </div>
             </li>
             <li>
               <span>03</span>
               <div>
-                <h3>Make it your lesson.</h3>
-                <p>Add the guidance and support your learners need.</p>
+                <h3>Cut and set up the pieces.</h3>
+                <p>Cut around the card or puzzle outlines and group the pieces by letter. Leave writing and colouring pages whole.</p>
               </div>
             </li>
           </ol>
@@ -488,8 +488,7 @@ function AlphabetPage() {
               Open a page preview <ArrowUpRight size={16} />
             </button>
             <p className="ab-print-note">
-              <Printer size={16} /> You receive digital materials to print. Physical supplies are
-              not included.
+              <Printer size={16} /> Open a sample to see the page layout before printing.
             </p>
           </div>
         </div>
@@ -613,11 +612,11 @@ function AlphabetPage() {
                 Activity Bundle
               </span>
             </a>
-            <p>Practical printables for your next letter lesson.</p>
+            <p>Make letter cards, games and activities for your next lesson.</p>
           </div>
           <div className="ab-footer-note">
             <p>
-              Digital resources. No physical products are shipped. Supplementary activities, not a
+              Digital files. No shipping. Supplementary activities, not a
               complete phonics curriculum. Learning experiences vary. Artwork remains credited to
               its respective creators.
             </p>
