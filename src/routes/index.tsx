@@ -1,5 +1,5 @@
 import { createFileRoute, useLocation } from "@tanstack/react-router";
-import { useRef, useState, type MouseEvent } from "react";
+import { useRef, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -14,7 +14,6 @@ import {
   X,
 } from "lucide-react";
 import { CustomerReviews } from "../components/CustomerReviews";
-import { HotmartInlineCheckout } from "../components/HotmartInlineCheckout";
 import { AdvertisingConsent } from "../components/AdvertisingConsent";
 import { AlphabetProductGallery } from "../components/AlphabetProductGallery";
 import { AlphabetPreviewVideo } from "../components/AlphabetPreviewVideo";
@@ -150,21 +149,6 @@ function AlphabetPage() {
       checkoutTracked.current = true;
     }
   };
-  const beginCheckout = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const checkout = document.getElementById("checkout");
-    if (!checkout) return;
-    event.preventDefault();
-    recordCheckout();
-    checkout.focus({ preventScroll: true });
-    checkout.scrollIntoView({
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "instant"
-        : "smooth",
-      block: "start",
-    });
-  };
-
   const trackVideo = (element: HTMLVideoElement, id: (typeof videos)[number]["id"]) => {
     if (!Number.isFinite(element.duration) || element.duration <= 0) return;
     for (const percent of [25, 50, 75, 100] as const) {
@@ -182,7 +166,7 @@ function AlphabetPage() {
     <main className="ab-page">
       <div className="ab-announcement">
         <Download size={14} />
-        <span>Make your own hands-on alphabet kit.</span>
+        <span>Print it. Make it. Explore letters together.</span>
         <span className="ab-announcement-extra">Print at home or school.</span>
       </div>
       <header className="ab-header ab-wrap">
@@ -206,21 +190,20 @@ function AlphabetPage() {
         Early learning <span aria-hidden="true">/</span> Alphabet activities
       </div>
       <section id="offer" className="ab-product ab-wrap" aria-labelledby="product-title">
+        <div className="ab-sales-intro">
+          <p className="ab-eyebrow">LESS SEARCHING. MORE HANDS-ON LETTER TIME.</p>
+          <h1 id="product-title">Turn “What can we practise today?” into <span>an activity ready to try.</span></h1>
+          <p>Stop piecing together random alphabet printouts. Make your own letter cards, writing strips and paper puzzles from one visual kit — ready for you to print, prepare and explore together.</p>
+          <a href="#watch" className="ab-text-link"><Play size={17} /> See the activities in action</a>
+        </div>
         <AlphabetProductGallery
           onEnlarge={openSample}
           onVideoProgress={(element) => trackVideo(element, "writing-demo")}
         />
         <div className="ab-product-info">
-          <p className="ab-eyebrow">PRINT, CUT AND MAKE</p>
-          <h1 id="product-title">
-            Alphabet
-            <br />
-            Activity Bundle
-          </h1>
-          <p className="ab-product-description">
-            Turn visual templates into alphabet cards, matching games and paper puzzles. Print the
-            pages you need, cut out the pieces and set up hands-on activities for home or school.
-          </p>
+          <p className="ab-eyebrow">ALPHABET ACTIVITY BUNDLE</p>
+          <h2>Your next letter activity starts here.</h2>
+          <p className="ab-product-description">Trace a letter. Match a card. Build a puzzle. Choose the activity that fits your learner, instead of starting your search from scratch.</p>
           <a className="ab-product-feedback-link" href="#customer-reviews">
             Read customer feedback <ArrowUpRight size={14} />
           </a>
@@ -238,11 +221,10 @@ function AlphabetPage() {
           </div>
           <a
             className="ab-button ab-checkout-button"
-            href="#checkout"
-            aria-controls="checkout"
-            onClick={beginCheckout}
+            href={checkoutUrl}
+            onClick={recordCheckout}
           >
-            Complete my order below
+            Yes, I want my alphabet kit
             <ArrowRight size={18} />
           </a>
           <p className="ab-product-payment">
@@ -264,7 +246,7 @@ function AlphabetPage() {
             <p>
               <strong>Make your own alphabet kit.</strong>
               <br />
-              Get access by email after payment, then print and prepare the activities you choose.
+              Receive access instructions by email after payment. Print your chosen pages and turn them into activities you can hold, arrange and use together.
             </p>
           </div>
           <p className="ab-small-note">
@@ -273,37 +255,6 @@ function AlphabetPage() {
           <a href="#what-you-get" className="ab-text-link">
             Take a look inside <ArrowUpRight size={15} />
           </a>
-        </div>
-      </section>
-      <section id="checkout" className="ab-checkout ab-wrap" aria-labelledby="checkout-title" tabIndex={-1}>
-        <div className="ab-checkout-heading">
-          <div>
-            <p className="ab-eyebrow">
-              <ShieldCheck size={16} /> PAYMENT BY HOTMART
-            </p>
-            <h2 id="checkout-title">Complete your order here.</h2>
-            <p>Enter your details and choose your payment method below.</p>
-          </div>
-          <span className="ab-checkout-digital">
-            <Download size={16} /> Digital download
-          </span>
-        </div>
-        <HotmartInlineCheckout checkoutUrl={checkoutUrl} />
-        <div className="ab-checkout-help">
-          <p>Confirm the total and currency shown by Hotmart before paying.</p>
-          <details>
-            <summary>Payment form not loading?</summary>
-            <p>You can also complete your order on Hotmart.</p>
-            <a
-              href={checkoutUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ab-text-link"
-              onClick={recordCheckout}
-            >
-              Open secure checkout <ArrowUpRight size={15} />
-            </a>
-          </details>
         </div>
       </section>
       <div className="ab-trust-row ab-wrap">
@@ -321,6 +272,58 @@ function AlphabetPage() {
         </span>
       </div>
 
+      <section className="ab-section ab-wrap ab-sales-story" aria-labelledby="story-title">
+        <p className="ab-eyebrow">YOU WANT TO HELP. YOU NEED A PLACE TO START.</p>
+        <h2 id="story-title">The activity should be on the table — not buried in another saved link.</h2>
+        <p>You have the intention. Then come the tabs, the printouts and the question of what to use next. This bundle gives you a set of visual materials to choose from, so you can spend less time searching and more time preparing an activity together.</p>
+        <div className="ab-story-grid">
+          <article><h3>Choose one letter.</h3><p>Start with what your learner is working on. You do not need to print the whole kit.</p></article>
+          <article><h3>Make something tangible.</h3><p>Turn the templates into cards, writing strips or puzzle pieces with paper and a little preparation.</p></article>
+          <article><h3>Change the activity.</h3><p>Move from tracing to colouring or building when you want another way to explore the same letter.</p></article>
+        </div>
+      </section>
+      <section id="watch" className="ab-section ab-wrap" aria-labelledby="watch-title">
+        <div className="ab-section-heading">
+          <div>
+            <p className="ab-eyebrow">SEE MORE THAN A COVER</p>
+            <h2 id="watch-title">
+              See it before you choose it.
+              <br />
+              <span>Real activities, up close.</span>
+            </h2>
+          </div>
+          <p>
+            Real activity previews, without the guesswork.
+            <br />
+            Silent previews you can pause and replay.
+          </p>
+        </div>
+        <div className="ab-videos">
+          {videos.map((video, index) => (
+            <article key={video.id}>
+              <div className="ab-video-top">
+                <span>0{index + 1}</span>
+                <span>{video.label}</span>
+                <Play size={14} />
+              </div>
+              <AlphabetPreviewVideo
+                src={media + video.id + ".mp4"}
+                poster={media + video.poster}
+                title={video.title}
+                onProgress={(element) => trackVideo(element, video.id)}
+              />
+              <div className="ab-video-copy">
+                <h3>{video.title}</h3>
+                <p>{video.note}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+        <p className="ab-swipe-note">
+          Tap a video to explore the activities <ArrowRight size={15} />
+        </p>
+      </section>
+
       <section
         id="what-you-get"
         className="ab-section ab-wrap ab-deliverables"
@@ -330,14 +333,13 @@ function AlphabetPage() {
           <div>
             <p className="ab-eyebrow">WHAT’S IN THE BUNDLE</p>
             <h2 id="deliverables-title">
-              Four ways to practise.
+              Give letter time more variety.
               <br />
-              <span>One handy bundle.</span>
+              <span>One kit. Four ways to begin.</span>
             </h2>
           </div>
           <p>
-            One bundle. Different ways to trace, write, colour and build. Take a look at the actual
-            materials.
+            When you want a change from tracing, try matching, colouring or building a letter. See what you can make from the materials below.
           </p>
         </div>
         <div className="ab-deliverable-grid">
@@ -427,15 +429,15 @@ function AlphabetPage() {
           <div>
             <p className="ab-eyebrow">OPEN THE BUNDLE</p>
             <h2 id="inside-title">
-              What’s on your
+              Pick a letter.
               <br />
-              <span>lesson plan?</span>
+              <span>Choose how to explore it.</span>
             </h2>
           </div>
           <p>
             Choose an activity below.
             <br />
-            See how it could fit your next lesson.
+            Picture it on your kitchen table or in your classroom.
           </p>
         </div>
         <div className="ab-activity-buttons" aria-label="Choose an activity type">
@@ -493,53 +495,11 @@ function AlphabetPage() {
           </div>
         </div>
         <div className="ab-section-action">
-          <p>Found a way to use these in your next lesson?</p>
-          <a className="ab-button" href="#checkout" onClick={beginCheckout}>
-            Get the bundle <ArrowRight size={18} />
+          <p>Have an activity in mind? Make it your next letter-time plan.</p>
+          <a className="ab-button" href={checkoutUrl} onClick={recordCheckout}>
+            Get my kit — {money(OFFER.price)} <ArrowRight size={18} />
           </a>
         </div>
-      </section>
-
-      <section id="watch" className="ab-section ab-wrap" aria-labelledby="watch-title">
-        <div className="ab-section-heading">
-          <div>
-            <p className="ab-eyebrow">SEE MORE THAN A COVER</p>
-            <h2 id="watch-title">
-              See the pages.
-              <br />
-              <span>Picture your next lesson.</span>
-            </h2>
-          </div>
-          <p>
-            Real activity previews, without the guesswork.
-            <br />
-            Silent previews you can pause and replay.
-          </p>
-        </div>
-        <div className="ab-videos">
-          {videos.map((video, index) => (
-            <article key={video.id}>
-              <div className="ab-video-top">
-                <span>0{index + 1}</span>
-                <span>{video.label}</span>
-                <Play size={14} />
-              </div>
-              <AlphabetPreviewVideo
-                src={media + video.id + ".mp4"}
-                poster={media + video.poster}
-                title={video.title}
-                onProgress={(element) => trackVideo(element, video.id)}
-              />
-              <div className="ab-video-copy">
-                <h3>{video.title}</h3>
-                <p>{video.note}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-        <p className="ab-swipe-note">
-          Swipe to explore the previews <ArrowRight size={15} />
-        </p>
       </section>
 
       <section className="ab-section ab-wrap ab-sample-section" aria-labelledby="sample-title">
@@ -572,6 +532,23 @@ function AlphabetPage() {
       </section>
 
       <CustomerReviews />
+      <section id="get-kit" className="ab-section ab-final-offer" aria-labelledby="kit-offer-title">
+        <div className="ab-wrap ab-offer-inner">
+          <p className="ab-eyebrow">MAKE YOUR NEXT LETTER-TIME PLAN</p>
+          <h2 id="kit-offer-title">From another saved idea to a kit you can actually use.</h2>
+          <p>Get the Alphabet Activity Bundle and choose your first activity: letter tracing cards, writing practice, colouring pages or paper puzzles.</p>
+          <ul>
+            <li><Check size={18} /> Visual templates to print and prepare</li>
+            <li><Check size={18} /> Cards, strips and pages for different kinds of practice</li>
+            <li><Check size={18} /> Use at home, in class or during tutoring</li>
+          </ul>
+          <strong className="ab-offer-amount">{money(OFFER.price)}</strong>
+          <p>One payment in Canadian dollars. No subscription.</p>
+          <a className="ab-button" href={checkoutUrl} onClick={recordCheckout}>Yes, I want my alphabet kit <ArrowRight size={18} /></a>
+          <p className="ab-small-note"><ShieldCheck size={16} /> Continue to secure payment on Hotmart. Access instructions arrive by email after payment approval.</p>
+          <p className="ab-small-note">Digital materials to print yourself. Printer, paper and stationery are not included. Review the final total and refund terms at checkout.</p>
+        </div>
+      </section>
 
       <section className="ab-wrap ab-faq" aria-labelledby="faq-title">
         <div>
@@ -581,7 +558,7 @@ function AlphabetPage() {
             <br />
             answers.
           </h2>
-          <a className="ab-text-link" href="#checkout" onClick={beginCheckout}>
+          <a className="ab-text-link" href={checkoutUrl} onClick={recordCheckout}>
             Go to checkout <ArrowUpRight size={16} />
           </a>
         </div>

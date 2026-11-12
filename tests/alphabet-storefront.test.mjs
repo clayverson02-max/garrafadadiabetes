@@ -51,15 +51,16 @@ test("server-rendered product offer precedes details and retains a working payme
   assert.ok(html.indexOf('id="offer"') < html.indexOf('id="what-you-get"'));
   assert.match(html, /CAD\s*9\.99/);
   assert.match(html, /Canadian dollars/);
-  assert.match(html, /href="https:\/\/pay\.hotmart\.com\/W108399942O\?checkoutMode=10"/);
-  assert.match(html, /href="#checkout"/);
-  assert.ok(html.indexOf('id="checkout"') < html.indexOf('id="what-you-get"'));
-  assert.match(html, /class="ab-inline-checkout"/);
-  assert.match(html, /<noscript><iframe/);
+  assert.match(html, /href="https:\/\/pay\.hotmart\.com\/W108399942O"/);
+  assert.doesNotMatch(html, /href="#checkout"|ab-inline-checkout|<iframe/);
+  assert.ok(html.indexOf('id="product-title"') < html.indexOf('class="ab-gallery"'));
+  assert.ok(html.indexOf('id="watch"') < html.indexOf('id="what-you-get"'));
+  assert.ok(html.indexOf('id="get-kit"') > html.indexOf('id="what-you-get"'));
+  assert.equal((html.match(/href="https:\/\/pay\.hotmart\.com\/W108399942O"/g) || []).length, 4);
   assert.doesNotMatch(html, /<s>|countdown|last chance/i);
 });
 
-test("gallery retains four selectable photos and a video alongside the embedded offer", () => {
+test("gallery retains four selectable photos and a video in the sales page", () => {
   assert.match(html, /aria-label="Choose a product preview"/);
   assert.equal((html.match(/aria-controls="product-preview"/g) || []).length, 5);
   assert.match(html, /aria-label="Watch a preview"/);
@@ -88,19 +89,19 @@ test("advertising choices render only in the footer without an open banner", () 
   assert.match(html.slice(preferences), /Allow measurement/);
 });
 
-test("embedded checkout receives only recognised campaign data on the first server render", () => {
+test("external checkout receives only recognised campaign data on the first server render", () => {
   const SearchPage = loadStorefront(
     () => {},
     {},
     "?utm_source=meta&utm_campaign=lesson&sck=teacher&fbclid=click&email=private&off=wrong",
   );
   const rendered = renderToStaticMarkup(React.createElement(SearchPage));
-  const match = rendered.match(/<noscript><iframe[^>]+src="([^"]+)"/);
+  const match = rendered.match(/href="(https:\/\/pay\.hotmart\.com\/[^"]+)"/);
   assert.ok(match);
   const url = new URL(match[1].replaceAll("&amp;", "&"));
   assert.equal(url.hostname, "pay.hotmart.com");
   assert.equal(url.pathname, "/W108399942O");
-  assert.equal(url.searchParams.get("checkoutMode"), "10");
+  assert.equal(url.searchParams.has("checkoutMode"), false);
   assert.equal(url.searchParams.get("utm_campaign"), "lesson");
   assert.equal(url.searchParams.get("sck"), "teacher");
   assert.equal(url.searchParams.get("fbclid"), "click");
@@ -111,7 +112,7 @@ test("embedded checkout receives only recognised campaign data on the first serv
 test("customer feedback preserves individual ratings without inventing a total or verified badges", () => {
   const start = html.indexOf('id="customer-reviews"');
   const end = html.indexOf('aria-labelledby="faq-title"', start);
-  assert.ok(start > html.indexOf('id="checkout"') && end > start);
+  assert.ok(start > html.indexOf('id="watch"') && end > start);
   const section = html.slice(start, end);
   assert.equal((section.match(/data-review-id=/g) || []).length, 6);
   assert.equal((section.match(/data-rating="4"/g) || []).length, 1);
